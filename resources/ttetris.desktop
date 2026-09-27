@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Tetris
+Comment=Tetris en la terminal
+Exec=tetris
+Icon=/usr/share/ttetris/icon.png
+Type=Application
+Categories=Games;
+Terminal=true
+Keywords=tetris;go;terminal;
+StartupNotify=false

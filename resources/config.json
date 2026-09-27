@@ -1,0 +1,26 @@
+{
+	"game": {
+		"shadow": true,
+		"hold": true
+	},
+	"key_binding": {
+		"right": "right",
+		"down": "down",
+		"left": "left",
+		"rotate": "up",
+		"hold": "c",
+		"floor": " ",
+		"pause": "esc",
+		"mute": "m"
+	},
+	"volume": {
+		"music": {
+			"value": 1,
+			"mute": false
+		},
+		"effects": {
+			"value": 1,
+			"mute": false
+		}
+	}
+}
