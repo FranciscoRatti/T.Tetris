@@ -41,7 +41,7 @@ Para la terminal se puede usar cualquiera, las recomendadas para Linux son **XTe
 
 ### Linux
 
-Descarga el archivo **[TTetris.zip](https://raw.githubusercontent.com/FranciscoRatti/T.Tetris/linux/TTetris.zip)**
+Descarga el archivo **[TTetris.zip](https://raw.githubusercontent.com/FranciscoRatti/T.Tetris/main/TTetris-linux.zip)**
 que contiene todos los archivos necesarios para la instalacion, desde github o usando curl:
 
 ```
@@ -51,7 +51,7 @@ curl -L -O https://github.com/FranciscoRatti/T.Tetris/releases/download/latest/T
 Descomprimís el archivo con:
 
 ```
-unzip TTetris.zip -d TTetris && rm TTetris.zip
+unzip TTetris-linux.zip -d TTetris && rm TTetris-linux.zip
 ```
 
 Dentro del directorio _TTetris/shell/_ podés encontrar un script de instalación llamado
@@ -82,7 +82,7 @@ sudo rm -R /usr/share/ttetris /usr/bin/tetris /usr/share/applications/ttetris.de
 
 ### Windows
 
-Descarga el archivo **[TTetris.zip](https://raw.githubusercontent.com/FranciscoRatti/T.Tetris/windows/TTetris.zip)**
+Descarga el archivo **[TTetris.zip](https://raw.githubusercontent.com/FranciscoRatti/T.Tetris/main/TTetris-windows.zip)**
 que contiene todos los archivos necesarios para la instalación, desde github o usando curl:
 
 ```
