@@ -36,53 +36,63 @@ Para la terminal se puede usar cualquiera, las recomendadas para Linux son **XTe
 
 ## Instalación
 
+> [!NOTE]
+> Si tu sistema operativo o arquitectura no permite ejecutarlo, agradeceria que lo reportes en la
+> parte de [Issues](https://github.com/FranciscoRatti/T.Tetris/issues) de GitHub.
+
 - [Linux](#linux)
 - [Windows](#windows)
+- [Source Code](#source-code)
+
+<br>
 
 ### Linux
 
 Descarga el archivo **[TTetris.zip](https://raw.githubusercontent.com/FranciscoRatti/T.Tetris/main/TTetris-linux.zip)**
 que contiene todos los archivos necesarios para la instalacion, desde github o usando curl:
 
-```
+```shell
 curl -L -O https://github.com/FranciscoRatti/T.Tetris/releases/download/latest/TTetris-linux.zip
 ```
 
 Descomprimís el archivo con:
 
-```
+```shell
 unzip TTetris-linux.zip -d TTetris && rm TTetris-linux.zip
 ```
 
 Dentro del directorio _TTetris/shell/_ podés encontrar un script de instalación llamado
 **install.sh**, simplemente ejecútalo usando:
 
-```
+```shell
 ./TTetris/shell/install.sh
 ```
 
 Por ultimo podes borrar los archivos descargados ejecutando:
 
-```
+```shell
 rm -rf TTetris
 ```
 
 Para ejecutarlo podes usar el menu de aplicaciones, que abrira el juego en la terminal
 predeterminada, o en cualquier terminal ejecutar:
 
-```
+```shell
 tetris
 ```
 
 Para **DESINSTALAR** el tetris debes borrar los archivos que se copian con el instalador.
 
-```
+```shell
 sudo rm -R /usr/share/ttetris /usr/bin/tetris /usr/share/applications/ttetris.desktop ~/.config/ttetris
 ```
 
+<br>
+
 ### Windows
 
-Descarga el archivo **[TTetris.zip](https://raw.githubusercontent.com/FranciscoRatti/T.Tetris/main/TTetris-windows.zip)**
+Se recomienda ejecutar los siguientes comandos en **CMD**, no en ~PowerShell~. <br>
+Primero descarga el archivo **[TTetris.zip](https://raw.githubusercontent.com/FranciscoRatti/T.Tetris/main/TTetris-windows.zip)**
 que contiene todos los archivos necesarios para la instalación, desde github o usando curl:
 
 ```
@@ -120,3 +130,39 @@ Para **DESINSTALAR** el tetris puedes ejecutar el desinstalador:
 ```
 "%ProgramFiles%\TTetris\uninstall.cmd"
 ```
+
+<br>
+
+### Source Code
+
+Podes compilar y ejecutar el proyecto en tu máquina, antes debes tener instalado **golang**. Para eso
+primero cloná el repositorio:
+
+```shell
+git clone https://github.com/FranciscoRatti/T.Tetris.git
+```
+
+Para compilar puedes ejecutar:
+
+```shell
+go build src/Main.go
+```
+
+Antes de ejecutar el binario hay dos cosas que debes de tener en cuenta:
+
+- Donde irán los **archivos estáticos**, estos son los audios y el icono, (png o ico). Los audios
+tienen que ir dentro de un directorio llamado **audio**
+- Donde irá el archivo de **configuración**. 
+
+Luego de tener esto claro, es necesario especificar estos dos path incluyendo los siguientes
+parámetros al ejecutar el binario:
+
+```shell
+[ejecutable] --resources [path] --config [path]
+```
+
+Si estas en el directorio del repositorio podes remplazar las dos veces que aparece **[path]** por
+**resources/** porque en el repositorio los archivos estáticos y la config estan en ese directorio.
+
+Para ejecutar sin compilar podes ejecutar el mismo comando anterior remplazando **[ejecutable]** por
+**go run src/Main.go**

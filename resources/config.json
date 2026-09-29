@@ -1,7 +1,8 @@
 {
 	"game": {
 		"shadow": true,
-		"hold": true
+		"hold": true,
+		"show_background": true
 	},
 	"key_binding": {
 		"right": "right",
@@ -15,11 +16,11 @@
 	},
 	"volume": {
 		"music": {
-			"value": 1,
+			"value": 2.25,
 			"mute": false
 		},
 		"effects": {
-			"value": 1,
+			"value": 3.25,
 			"mute": false
 		}
 	}

@@ -14,8 +14,9 @@ import (
 
 type config struct {
 	Game struct {
-		Shadow bool `json:"shadow"`
-		Hold   bool `json:"hold"`
+		Shadow         bool `json:"shadow"`
+		Hold           bool `json:"hold"`
+		ShowBackground bool `json:"show_background"`
 	} `json:"game"`
 	KeyBinding struct {
 		Right  string `json:"right"`

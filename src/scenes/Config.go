@@ -16,14 +16,22 @@ var (
 	isKeyBindFocus           bool
 )
 
+var isConfigBackgroundRunning bool
+
 func OpenConfig() {
+	var channel chan bool
+
 	selectedButtonKeyBinding = 0
 	selectedButtonVolumen = 0
 	selectedButtonGame = 0
 	selectedPane = 1
 	isKeyBindFocus = false
 
-	drawConfig()
+	if obj.Config.Game.ShowBackground && (lib.Width > 90 || lib.Height > 30) {
+		channel = startBackgroundAnimation(&isConfigBackgroundRunning, drawConfig)
+	} else {
+		drawConfig()
+	}
 
 	// Bucle
 	for {
@@ -91,10 +99,10 @@ func OpenConfig() {
 							selectedButtonVolumen++
 						}
 					case 3:
-						if selectedButtonGame == 1 {
+						if selectedButtonGame == 2 {
 							selectedButtonGame = 0
 						} else {
-							selectedButtonGame = 1
+							selectedButtonGame++
 						}
 					}
 				case tcell.KeyUp:
@@ -114,9 +122,9 @@ func OpenConfig() {
 						}
 					case 3:
 						if selectedButtonGame == 0 {
-							selectedButtonGame = 1
+							selectedButtonGame = 2
 						} else {
-							selectedButtonGame = 0
+							selectedButtonGame--
 						}
 					}
 				case tcell.KeyRight:
@@ -158,11 +166,35 @@ func OpenConfig() {
 							obj.Config.Game.Shadow = !obj.Config.Game.Shadow
 						case 1:
 							obj.Config.Game.Hold = !obj.Config.Game.Hold
+						case 2:
+							obj.Config.Game.ShowBackground = !obj.Config.Game.ShowBackground
+							if obj.Config.Game.ShowBackground {
+								generateBackground()
+								channel = startBackgroundAnimation(&isConfigBackgroundRunning, drawConfig)
+							} else {
+								isConfigBackgroundRunning = false
+								if channel != nil {
+									<-channel
+								}
+							}
 						}
 					}
 				case tcell.KeyEscape:
+					isConfigBackgroundRunning = false
 					obj.EnterAudio.Play()
 					return
+				default:
+					if obj.KeyMute.Equals(k, event.Str()) {
+						if lib.Mute {
+							lib.Mute = false
+							obj.ChangeMuteEffectsWithoutChange(obj.Config.Volume.Effects.Mute)
+							obj.ChangeMuteMusicWithoutChange(obj.Config.Volume.Music.Mute)
+						} else {
+							lib.Mute = true
+							obj.ChangeMuteEffectsWithoutChange(true)
+							obj.ChangeMuteMusicWithoutChange(true)
+						}
+					}
 				}
 
 				switch event.Str() {
@@ -176,12 +208,25 @@ func OpenConfig() {
 					obj.KeyAudio.Play()
 					selectedPane = 3
 				case "q":
+					isConfigBackgroundRunning = false
 					obj.EnterAudio.Play()
 					return
 				}
 			}
 		case *tcell.EventResize:
+			isConfigBackgroundRunning = false
+			if obj.Config.Game.ShowBackground && channel != nil {
+				<-channel
+			}
+
 			lib.Width, lib.Height = lib.Screen.Size()
+
+			if obj.Config.Game.ShowBackground {
+				generateBackground()
+				if lib.Width > 90 || lib.Height > 30 {
+					channel = startBackgroundAnimation(&isConfigBackgroundRunning, drawConfig)
+				}
+			}
 		}
 
 		drawConfig()
@@ -190,6 +235,18 @@ func OpenConfig() {
 
 func drawConfig() {
 	lib.Screen.Clear()
+
+	if obj.Config.Game.ShowBackground && (lib.Width > 90 || lib.Height > 30) {
+		drawBackground()
+
+		minY := lib.Height/2 - 15
+		minX := lib.Width/2 - 45
+		for i := range 30 {
+			for j := range 90 {
+				lib.Screen.Put(j+minX, i+minY, " ", lib.DefaultStyle)
+			}
+		}
+	}
 
 	minX := int(math.Max(0, float64(lib.Width/2-45)))
 	maxX := int(math.Min(float64(lib.Width-1), float64(lib.Width/2+44)))
@@ -201,11 +258,10 @@ func drawConfig() {
 	spacingY9 := differenceY / 9
 	spacingY18 := differenceY / 18
 
-	spacingY16 := (differenceY + 1) / 16
-	spacingY32 := (differenceY + 1) / 32
+	spacingY16 := differenceY / 16
+	spacingY32 := differenceY / 32
 
-	spacingY6 := (differenceY + 1) / 6
-	spacingY12 := (differenceY + 1) / 12
+	spacingY8 := (differenceY + 2) / 8
 
 	spacingX4 := float64(maxX-minX) / 4
 
@@ -251,20 +307,26 @@ func drawConfig() {
 
 	// Game
 	i = 0
-	for y := float64(lib.Height/2+1) + spacingY12; y <= float64(maxY-1) && i < 2; y += spacingY6 {
+	for y := float64(lib.Height/2+1) + spacingY16; y <= float64(maxY-1) && i < 3; y += spacingY8 {
 		lib.Screen.PutStrStyled(x-len(gameSprites[i])/2, int(math.Round(y)), gameSprites[i], lib.DefaultStyle)
 		i++
 	}
 	if obj.Config.Game.Shadow {
 		lib.Screen.PutStrStyled(
 			x-len(gameSprites[0])/2+1,
-			int(math.Round(float64(lib.Height/2+1)+spacingY12)),
+			int(math.Round(float64(lib.Height/2+1)+spacingY16)),
 			"x", lib.DefaultStyle)
 	}
 	if obj.Config.Game.Hold {
 		lib.Screen.PutStrStyled(
 			x-len(gameSprites[1])/2+1,
-			int(math.Round(float64(lib.Height/2+1)+spacingY12+spacingY6)),
+			int(math.Round(float64(lib.Height/2+1)+spacingY16+spacingY8)),
+			"x", lib.DefaultStyle)
+	}
+	if obj.Config.Game.ShowBackground {
+		lib.Screen.PutStrStyled(
+			x-len(gameSprites[1])/2+1,
+			int(math.Round(float64(lib.Height/2+1)+spacingY16+spacingY8*2)),
 			"x", lib.DefaultStyle)
 	}
 
@@ -386,23 +448,34 @@ func drawConfig() {
 		case 0:
 			lib.Screen.PutStrStyled(
 				x,
-				int(math.Round(float64(lib.Height/2+1)+spacingY12)),
+				int(math.Round(float64(lib.Height/2+1)+spacingY16)),
 				"[ ]", lib.SelectedStyle)
 			if obj.Config.Game.Shadow {
 				lib.Screen.PutStrStyled(
 					x+1,
-					int(math.Round(float64(lib.Height/2+1)+spacingY12)),
+					int(math.Round(float64(lib.Height/2+1)+spacingY16)),
 					"x", lib.SelectedStyle)
 			}
 		case 1:
 			lib.Screen.PutStrStyled(
 				x,
-				int(math.Round(float64(lib.Height/2+1)+spacingY12+spacingY6)),
+				int(math.Round(float64(lib.Height/2+1)+spacingY16+spacingY8)),
 				"[ ]", lib.SelectedStyle)
 			if obj.Config.Game.Hold {
 				lib.Screen.PutStrStyled(
 					x+1,
-					int(math.Round(float64(lib.Height/2+1)+spacingY12+spacingY6)),
+					int(math.Round(float64(lib.Height/2+1)+spacingY16+spacingY8)),
+					"x", lib.SelectedStyle)
+			}
+		case 2:
+			lib.Screen.PutStrStyled(
+				x,
+				int(math.Round(float64(lib.Height/2+1)+spacingY16+spacingY8*2)),
+				"[ ]", lib.SelectedStyle)
+			if obj.Config.Game.ShowBackground {
+				lib.Screen.PutStrStyled(
+					x+1,
+					int(math.Round(float64(lib.Height/2+1)+spacingY16+spacingY8*2)),
 					"x", lib.SelectedStyle)
 			}
 		}
@@ -458,7 +531,8 @@ var (
 	}
 
 	gameSprites = []string{
-		"[ ] ENABLE SHADOW",
-		"[ ] ENABLE HOLD  ",
+		"[ ] SHOW SHADOW    ",
+		"[ ] ENABLE HOLD    ",
+		"[ ] SHOW BACKGROUND",
 	}
 )

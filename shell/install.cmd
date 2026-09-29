@@ -14,7 +14,7 @@ if %errorlevel% neq 0 (
 set "INSTALL_DIR=%ProgramFiles%\TTetris"
 if not exist "%INSTALL_DIR%" mkdir "%INSTALL_DIR%"
 
-copy /Y "%SRC%\bin\windows.exe" "%INSTALL_DIR%\tetris.exe"
+copy /Y "%SRC%\bin\tetris.exe" "%INSTALL_DIR%\tetris.exe"
 copy /Y "%SRC%\shell\uninstall.cmd" "%INSTALL_DIR%\uninstall.cmd"
 
 :: PATH del SISTEMA

@@ -13,29 +13,43 @@ var DefaultStyle = tcell.StyleDefault.Background(color.Reset).Foreground(color.N
 var SelectedStyle = tcell.StyleDefault.Background(color.NewRGBColor(0, 255, 0)).Foreground(color.NewRGBColor(0, 0, 0))
 var GameOverStyle = tcell.StyleDefault.Background(color.Reset).Foreground(color.NewRGBColor(255, 0, 0))
 
+var BackgroundPieceStyle = tcell.StyleDefault.Background(color.Reset).Foreground(color.NewRGBColor(255, 255, 255))
+var BackgroundShadowStyles = [10]tcell.Style{
+	tcell.StyleDefault.Background(color.Reset).Foreground(color.NewRGBColor(0, 220, 0)),
+	tcell.StyleDefault.Background(color.Reset).Foreground(color.NewRGBColor(0, 200, 0)),
+	tcell.StyleDefault.Background(color.Reset).Foreground(color.NewRGBColor(0, 180, 0)),
+	tcell.StyleDefault.Background(color.Reset).Foreground(color.NewRGBColor(0, 160, 0)),
+	tcell.StyleDefault.Background(color.Reset).Foreground(color.NewRGBColor(0, 140, 0)),
+	tcell.StyleDefault.Background(color.Reset).Foreground(color.NewRGBColor(0, 100, 0)),
+	tcell.StyleDefault.Background(color.Reset).Foreground(color.NewRGBColor(0, 80, 0)),
+	tcell.StyleDefault.Background(color.Reset).Foreground(color.NewRGBColor(0, 60, 0)),
+	tcell.StyleDefault.Background(color.Reset).Foreground(color.NewRGBColor(0, 40, 0)),
+	tcell.StyleDefault.Background(color.Reset).Foreground(color.NewRGBColor(0, 20, 0)),
+}
+
 var (
 	Height int
 	Width  int
 	Mute   = false
 )
 
-func DrawString(x, y int, text []string, style tcell.Style, s tcell.Screen) {
+func DrawString(x, y int, text []string, style tcell.Style) {
 	for iR, r := range text {
-		s.PutStrStyled(x, y+iR, r, style)
+		Screen.PutStrStyled(x, y+iR, r, style)
 	}
 }
 
-func DrawChars(x, y int, text []string, styles [][]tcell.Style, s tcell.Screen) {
+func DrawChars(x, y int, text []string, styles [][]tcell.Style) {
 	for iR, r := range text {
 		for iC, c := range r {
 			if c != ' ' {
-				s.Put(x+iC, y+iR, string(c), styles[iR][iC])
+				Screen.Put(x+iC, y+iR, string(c), styles[iR][iC])
 			}
 		}
 	}
 }
 
-func DrawWithFrame(x, y int, text []string, style tcell.Style, s tcell.Screen) {
+func DrawWithFrame(x, y int, text []string, style tcell.Style) {
 	height := len(text)
 	var width int
 	for _, line := range text {
@@ -45,26 +59,26 @@ func DrawWithFrame(x, y int, text []string, style tcell.Style, s tcell.Screen) {
 		}
 	}
 
-	s.Put(x, y, "┌", DefaultStyle)
-	s.Put(x+width+1, y, "┐", DefaultStyle)
-	s.Put(x, y+height+1, "└", DefaultStyle)
-	s.Put(x+width+1, y+height+1, "┘", DefaultStyle)
+	Screen.Put(x, y, "┌", DefaultStyle)
+	Screen.Put(x+width+1, y, "┐", DefaultStyle)
+	Screen.Put(x, y+height+1, "└", DefaultStyle)
+	Screen.Put(x+width+1, y+height+1, "┘", DefaultStyle)
 
 	for i := 0; i < height+1; i++ {
 		if i != 0 && i != height+1 {
-			s.Put(x, y+i, "¦", DefaultStyle)
-			s.Put(x+width+1, y+i, "¦", DefaultStyle)
+			Screen.Put(x, y+i, "¦", DefaultStyle)
+			Screen.Put(x+width+1, y+i, "¦", DefaultStyle)
 		}
 
 		for j := 0; j < width+1; j++ {
 			if j != 0 && j != width+1 {
-				s.Put(x+j, y, "-", DefaultStyle)
-				s.Put(x+j, y+height+1, "-", DefaultStyle)
+				Screen.Put(x+j, y, "-", DefaultStyle)
+				Screen.Put(x+j, y+height+1, "-", DefaultStyle)
 			}
 		}
 	}
 
-	DrawString(x+1, y+1, text, style, s)
+	DrawString(x+1, y+1, text, style)
 }
 
 func AppendCero(text string, length int) string {

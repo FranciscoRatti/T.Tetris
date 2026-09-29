@@ -22,7 +22,7 @@ func (_ timer) Initialize(sleep float32, run func()) {
 func (t *timer) Start() {
 	t.isRunning = true
 
-	loop := func() {
+	go func() {
 		for t.isRunning {
 			if time.Since(lastExec) >= time.Duration(t.sleep)*time.Millisecond {
 				t.run()
@@ -30,9 +30,7 @@ func (t *timer) Start() {
 				lastExec = time.Now()
 			}
 		}
-	}
-
-	go loop()
+	}()
 }
 
 func (t *timer) Stop() {

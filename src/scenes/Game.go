@@ -174,6 +174,18 @@ func StartNewGame() {
 					obj.Timer.Stop()
 				}
 			}
+
+			if obj.KeyMute.Equals(k, s) {
+				if lib.Mute {
+					lib.Mute = false
+					obj.ChangeMuteEffectsWithoutChange(obj.Config.Volume.Effects.Mute)
+					obj.ChangeMuteMusicWithoutChange(obj.Config.Volume.Music.Mute)
+				} else {
+					lib.Mute = true
+					obj.ChangeMuteEffectsWithoutChange(true)
+					obj.ChangeMuteMusicWithoutChange(true)
+				}
+			}
 		case *tcell.EventResize:
 			lib.Width, lib.Height = lib.Screen.Size()
 		}
@@ -192,24 +204,24 @@ func drawGame() {
 	lib.Screen.Clear()
 
 	// Marco
-	lib.DrawString(lib.Width/2-12, lib.Height/2-11, frame, lib.DefaultStyle, lib.Screen)
+	lib.DrawString(lib.Width/2-12, lib.Height/2-11, frame, lib.DefaultStyle)
 	if !isPause {
-		lib.DrawChars(lib.Width/2-10, lib.Height/2-11, stationaryPieces, stationaryColors, lib.Screen)
+		lib.DrawChars(lib.Width/2-10, lib.Height/2-11, stationaryPieces, stationaryColors)
 
 		// Pieza
 		currentPiece.Draw(stationaryPieces)
 
 		// Siguiente
-		lib.DrawString(lib.Width/2+14, lib.Height/2-11, []string{"NEXT"}, lib.DefaultStyle, lib.Screen)
+		lib.DrawString(lib.Width/2+14, lib.Height/2-11, []string{"NEXT"}, lib.DefaultStyle)
 		var height int
 		for _, p := range nextPieces {
-			lib.DrawWithFrame(lib.Width/2+13, lib.Height/2-10+height, p.GetSprite(0), p.GetStyle(), lib.Screen)
+			lib.DrawWithFrame(lib.Width/2+13, lib.Height/2-10+height, p.GetSprite(0), p.GetStyle())
 			height += len(p.GetSprite(0)) + 2
 		}
 
 		// Hold
 		if holdPiece != nil {
-			lib.DrawString(lib.Width/2-18, lib.Height/2-11, []string{"HOLD"}, lib.DefaultStyle, lib.Screen)
+			lib.DrawString(lib.Width/2-18, lib.Height/2-11, []string{"HOLD"}, lib.DefaultStyle)
 			var width int
 			var length int
 			for _, r := range holdPiece.GetSprite(0) {
@@ -218,12 +230,12 @@ func drawGame() {
 					width = length
 				}
 			}
-			lib.DrawWithFrame((lib.Width/2-15)-width, lib.Height/2-10, holdPiece.GetSprite(0), holdPiece.GetStyle(), lib.Screen)
+			lib.DrawWithFrame((lib.Width/2-15)-width, lib.Height/2-10, holdPiece.GetSprite(0), holdPiece.GetStyle())
 		}
 	} else {
 
 		// Pausa
-		lib.DrawString(lib.Width/2-7, lib.Height/2-2, pauseMessage, lib.DefaultStyle, lib.Screen)
+		lib.DrawString(lib.Width/2-7, lib.Height/2-2, pauseMessage, lib.DefaultStyle)
 
 		alto := 0
 		switch selectedButton {
@@ -234,7 +246,7 @@ func drawGame() {
 		case 2:
 			alto = 2
 		}
-		lib.DrawString(lib.Width/2-5, lib.Height/2-1+alto, []string{">"}, lib.DefaultStyle, lib.Screen)
+		lib.DrawString(lib.Width/2-5, lib.Height/2-1+alto, []string{">"}, lib.DefaultStyle)
 	}
 
 	// Nivel
@@ -243,7 +255,7 @@ func drawGame() {
 		" _---_ ",
 		"{ " + lib.AppendCero(strconv.Itoa(int(level)), 3) + " }",
 		" ¯---¯ ",
-	}, lib.DefaultStyle, lib.Screen)
+	}, lib.DefaultStyle)
 
 	// Lineas
 	lib.DrawString(lib.Width/2-25, lib.Height/2+1, []string{
@@ -251,7 +263,7 @@ func drawGame() {
 		" _-------_ ",
 		"{ " + lib.AppendCero(strconv.Itoa(int((lines%1000000)/1000)), 3) + "." + lib.AppendCero(strconv.Itoa(int(lines%1000)), 3) + " }",
 		" ¯-------¯ ",
-	}, lib.DefaultStyle, lib.Screen)
+	}, lib.DefaultStyle)
 
 	// Puntuacion
 	lib.DrawString(lib.Width/2-29, lib.Height/2+6, []string{
@@ -259,11 +271,11 @@ func drawGame() {
 		" _-----------_ ",
 		"{ " + lib.AppendCero(strconv.Itoa(int(score%1000000000)/1000000), 3) + "." + lib.AppendCero(strconv.Itoa(int((score%1000000)/1000)), 3) + "." + lib.AppendCero(strconv.Itoa(int(score%1000)), 3) + " }",
 		" ¯-----------¯ ",
-	}, lib.DefaultStyle, lib.Screen)
+	}, lib.DefaultStyle)
 
 	// Game over
 	if isGameOver {
-		lib.DrawString(lib.Width/2-7, lib.Height/2-2, gameOverMessage, lib.GameOverStyle, lib.Screen)
+		lib.DrawString(lib.Width/2-7, lib.Height/2-2, gameOverMessage, lib.GameOverStyle)
 
 		alto := 0
 		switch selectedButton {
@@ -272,7 +284,7 @@ func drawGame() {
 		case 1:
 			alto = 1
 		}
-		lib.DrawString(lib.Width/2-5, lib.Height/2-1+alto, []string{">"}, lib.GameOverStyle, lib.Screen)
+		lib.DrawString(lib.Width/2-5, lib.Height/2-1+alto, []string{">"}, lib.GameOverStyle)
 	}
 
 	lib.Screen.Show()

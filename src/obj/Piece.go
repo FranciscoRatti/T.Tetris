@@ -170,10 +170,15 @@ func (p Piece) GetActualSprite() []string {
 }
 
 func (p Piece) GetSprite(r int) []string {
-	if p.id == 4 {
+	switch p.id {
+	case 0, 1, 5:
+		return p.sprite[r]
+	case 2, 3, 6:
+		return p.sprite[r/2]
+	default:
 		return p.sprite[0]
 	}
-	return p.sprite[r]
+
 }
 
 func (p Piece) GetStyle() tcell.Style {
