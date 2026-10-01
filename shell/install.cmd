@@ -17,17 +17,14 @@ if not exist "%DATA_DIR%" mkdir "%DATA_DIR%"
 copy /Y "%SRC%\resources\icon.ico" "%DATA_DIR%\"
 xcopy /Y /E /I "%SRC%\resources\audio\" "%DATA_DIR%\audio\"
 
-:: VARIABLE
-set "VAR_DIR=%INSTALL_DIR%\var"
-if not exist "%VAR_DIR%" mkdir "%VAR_DIR%"
-
-if not exist "%VAR_DIR%\scoreboard.obj" copy /Y "%SRC%\resources\scoreboard.obj" "%VAR_DIR%\"
-
 :: CONFIG
 set "CONFIG_DIR=%AppData%\TTetris"
 if not exist "%CONFIG_DIR%" mkdir "%CONFIG_DIR%"
 
-if not exist "%CONFIG_DIR%\config.json" copy /Y "%SRC%\resources\config.json" "%CONFIG_DIR%\config.json"
+copy /Y "%SRC%\resources\config.json" "%CONFIG_DIR%\config.json"
+
+:: VARIABLE
+if not exist "%CONFIG_DIR%\scoreboard.obj" copy /Y "%SRC%\resources\scoreboard.obj" %CONFIG_DIR%\"
 
 :: BINARIO
 set "INSTALL_DIR=%ProgramFiles%\TTetris"

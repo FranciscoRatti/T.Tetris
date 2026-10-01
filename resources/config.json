@@ -2,7 +2,7 @@
 	"game": {
 		"shadow": true,
 		"hold": true,
-		"show_background": true
+		"show_background": false
 	},
 	"key_binding": {
 		"right": "Right",

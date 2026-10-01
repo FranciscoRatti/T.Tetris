@@ -74,7 +74,7 @@ func main() {
 		if runtime.GOOS == "linux" {
 			lib.VAR_PATH = "/var/lib/ttetris/"
 		} else if runtime.GOOS == "windows" {
-			lib.VAR_PATH = os.Getenv("ProgramFiles") + "\\TTetris\\var\\"
+			lib.VAR_PATH = os.Getenv("AppData") + "\\TTetris\\"
 		}
 	}
 
