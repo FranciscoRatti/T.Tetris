@@ -2,24 +2,24 @@ package obj
 
 import "time"
 
-type timer struct {
+type gameTimer struct {
 	sleep     float32
 	loop      uint
 	isRunning bool
 	run       func()
 }
 
-var Timer timer
+var Timer gameTimer
 var lastExec time.Time
 var firstExec time.Time
 
-func (_ timer) Initialize(sleep float32, run func()) {
-	Timer = timer{sleep, 0, false, run}
+func (_ *gameTimer) Initialize(sleep float32, run func()) {
+	Timer = gameTimer{sleep, 0, false, run}
 	lastExec = time.Now()
 	firstExec = time.Now()
 }
 
-func (t *timer) Start() {
+func (t *gameTimer) Start() {
 	t.isRunning = true
 
 	go func() {
@@ -33,35 +33,35 @@ func (t *timer) Start() {
 	}()
 }
 
-func (t *timer) Stop() {
+func (t *gameTimer) Stop() {
 	t.isRunning = false
 }
 
-func (t *timer) Resume() {
+func (t *gameTimer) Resume() {
 	t.isRunning = true
 	t.Start()
 }
 
-func (t *timer) Restart(speed float32) {
+func (t *gameTimer) Restart(speed float32) {
 	Timer.Stop()
 	Timer.sleep = speed
 	Timer.Start()
 }
 
-func (t *timer) UpdateLastExec() {
+func (t *gameTimer) UpdateLastExec() {
 	lastExec = time.Now()
 }
 
-func (t *timer) ChangeSleep(sleep float32) {
+func (t *gameTimer) ChangeSleep(sleep float32) {
 	t.sleep = sleep
 }
-func (t timer) GetSleep() float32 {
+func (t *gameTimer) GetSleep() float32 {
 	return t.sleep
 }
 
-func (t timer) GetSinceFirstExec() time.Duration {
+func (t *gameTimer) GetSinceFirstExec() time.Duration {
 	return time.Since(firstExec)
 }
-func (t timer) GetLoop() uint {
+func (t *gameTimer) GetLoop() uint {
 	return t.loop
 }

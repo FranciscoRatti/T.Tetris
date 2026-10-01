@@ -13,10 +13,10 @@ var selectedButton = 0
 var isMenuBackgroundRunning = false
 
 func OpenMenu() {
-	var channel chan bool
+	var backgroundChannel chan bool
 	if obj.Config.Game.ShowBackground {
 		generateBackground()
-		channel = startBackgroundAnimation(&isMenuBackgroundRunning, drawMenu)
+		backgroundChannel = startBackgroundAnimation(&isMenuBackgroundRunning, drawMenu)
 	}
 	drawMenu()
 
@@ -54,8 +54,8 @@ func OpenMenu() {
 				switch selectedButton {
 				case 0:
 					isMenuBackgroundRunning = false
-					if obj.Config.Game.ShowBackground && channel != nil {
-						<-channel
+					if obj.Config.Game.ShowBackground && backgroundChannel != nil {
+						<-backgroundChannel
 					}
 
 					obj.MenuAudio.Stop()
@@ -64,19 +64,19 @@ func OpenMenu() {
 					selectedButton = 0
 
 					if obj.Config.Game.ShowBackground {
-						channel = startBackgroundAnimation(&isMenuBackgroundRunning, drawMenu)
+						backgroundChannel = startBackgroundAnimation(&isMenuBackgroundRunning, drawMenu)
 					}
 				case 1:
 					isMenuBackgroundRunning = false
-					if obj.Config.Game.ShowBackground && channel != nil {
-						<-channel
+					if obj.Config.Game.ShowBackground && backgroundChannel != nil {
+						<-backgroundChannel
 					}
 
 					OpenConfig()
 					selectedButton = 0
 
 					if obj.Config.Game.ShowBackground {
-						channel = startBackgroundAnimation(&isMenuBackgroundRunning, drawMenu)
+						backgroundChannel = startBackgroundAnimation(&isMenuBackgroundRunning, drawMenu)
 					}
 				case 2:
 					return
@@ -85,67 +85,65 @@ func OpenMenu() {
 			// Mute
 			default:
 				if obj.KeyMute.Equals(k, event.Str()) {
-					if lib.Mute {
-						lib.Mute = false
-						obj.ChangeMuteEffectsWithoutChange(obj.Config.Volume.Effects.Mute)
-						obj.ChangeMuteMusicWithoutChange(obj.Config.Volume.Music.Mute)
-					} else {
-						lib.Mute = true
-						obj.ChangeMuteEffectsWithoutChange(true)
-						obj.ChangeMuteMusicWithoutChange(true)
-					}
+					obj.ChangeMuteAll()
 				}
 			}
 
 		case *tcell.EventResize:
 			isMenuBackgroundRunning = false
-			if obj.Config.Game.ShowBackground && channel != nil {
-				<-channel
+			if obj.Config.Game.ShowBackground && backgroundChannel != nil {
+				<-backgroundChannel
 			}
 
 			lib.Width, lib.Height = lib.Screen.Size()
 
 			if obj.Config.Game.ShowBackground {
 				generateBackground()
-				channel = startBackgroundAnimation(&isMenuBackgroundRunning, drawMenu)
+				backgroundChannel = startBackgroundAnimation(&isMenuBackgroundRunning, drawMenu)
 			}
 		}
 
-		// Pintar
 		drawMenu()
 	}
 }
 
+// Draw ----------------------------------------------------------------------------------------------------------------
+
 func drawMenu() {
 	lib.Screen.Clear()
 
+	// Background
 	if obj.Config.Game.ShowBackground {
 		drawBackground()
 	}
 
+	// Buttons
 	switch selectedButton {
 	case 0:
-		lib.Screen.PutStrStyled(lib.Width/2-4, lib.Height/2+2, "[ "+startButton+" ]", lib.DefaultStyle)
+		lib.Screen.PutStrStyled(lib.Width/2-4, lib.Height/2+2, "[ "+startButton+" ]", lib.SelectedStyle)
 		lib.Screen.PutStrStyled(lib.Width/2-3, lib.Height/2+5, optionsButton, lib.DefaultStyle)
 		lib.Screen.PutStrStyled(lib.Width/2-2, lib.Height/2+8, exitButton, lib.DefaultStyle)
 	case 1:
 		lib.Screen.PutStrStyled(lib.Width/2-2, lib.Height/2+2, startButton, lib.DefaultStyle)
-		lib.Screen.PutStrStyled(lib.Width/2-5, lib.Height/2+5, "[ "+optionsButton+" ]", lib.DefaultStyle)
+		lib.Screen.PutStrStyled(lib.Width/2-5, lib.Height/2+5, "[ "+optionsButton+" ]", lib.SelectedStyle)
 		lib.Screen.PutStrStyled(lib.Width/2-2, lib.Height/2+8, exitButton, lib.DefaultStyle)
 	case 2:
 		lib.Screen.PutStrStyled(lib.Width/2-2, lib.Height/2+2, startButton, lib.DefaultStyle)
 		lib.Screen.PutStrStyled(lib.Width/2-3, lib.Height/2+5, optionsButton, lib.DefaultStyle)
-		lib.Screen.PutStrStyled(lib.Width/2-4, lib.Height/2+8, "[ "+exitButton+" ]", lib.DefaultStyle)
+		lib.Screen.PutStrStyled(lib.Width/2-4, lib.Height/2+8, "[ "+exitButton+" ]", lib.SelectedStyle)
 	default:
 		lib.Screen.PutStrStyled(lib.Width/2-2, lib.Height/2+2, startButton, lib.DefaultStyle)
 		lib.Screen.PutStrStyled(lib.Width/2-3, lib.Height/2+5, optionsButton, lib.DefaultStyle)
 		lib.Screen.PutStrStyled(lib.Width/2-2, lib.Height/2+8, exitButton, lib.DefaultStyle)
 	}
 
+	// Logo
 	lib.DrawString(lib.Width/2-28, lib.Height/2-9, logo, lib.DefaultStyle)
 
 	lib.Screen.Show()
 }
+
+// Background ----------------------------------------------------------------------------------------------------------
 
 func drawBackground() {
 	for iR, r := range background {
@@ -162,6 +160,8 @@ func drawBackground() {
 }
 
 func generateBackground() {
+
+	// Reiniciar valores
 	background = make([][]byte, lib.Height)
 	backgroundShadow = make([][]rune, lib.Height)
 	for i := range background {
@@ -172,13 +172,14 @@ func generateBackground() {
 		}
 	}
 
+	// Generar
 	cantPieces := (lib.Height * lib.Width) / 200
-
 	for range cantPieces {
 		var id, x, y int
 		var sprite []string
 		var spriteHeight, spriteWidth int
 
+		// Chequear
 		isRightOnTop := true
 		for isRightOnTop {
 			id = rand.Intn(7)
@@ -223,6 +224,7 @@ func generateBackground() {
 			}
 		}
 
+		// Guardar sombra
 		for iR := spriteHeight - 1; iR >= 0; iR-- {
 			for iC, c := range sprite[iR] {
 				if c == '[' || c == ']' {
@@ -238,6 +240,7 @@ func generateBackground() {
 			}
 		}
 
+		// Guardar pieza
 		for iR, r := range sprite {
 			for iC, c := range r {
 				if c != ' ' {
@@ -252,10 +255,13 @@ func startBackgroundAnimation(condition *bool, draw func()) chan bool {
 	channel := make(chan bool)
 
 	*condition = true
-	loop := func() {
-		lastExec := time.Now()
+	go func() {
+		now := time.Now()
 		for *condition {
-			if time.Since(lastExec) >= time.Duration(50)*time.Millisecond {
+			if time.Since(now) >= time.Duration(50)*time.Millisecond {
+				now = time.Now()
+
+				// Mover
 				lastLineBackground := background[len(background)-1]
 				lastLineShadow := backgroundShadow[len(backgroundShadow)-1]
 
@@ -266,20 +272,20 @@ func startBackgroundAnimation(condition *bool, draw func()) chan bool {
 				background[0] = lastLineBackground
 				backgroundShadow[0] = lastLineShadow
 
+				// Pintar
 				drawBackground()
 				draw()
-				lastExec = time.Now()
 			}
 		}
 
 		channel <- true
-	}
+	}()
 
-	go loop()
 	return channel
 }
 
-// Sprites
+// Sprites -------------------------------------------------------------------------------------------------------------
+
 var (
 	background       [][]byte
 	backgroundShadow [][]rune
@@ -296,7 +302,6 @@ var (
 		"╚═╩═════════════════════════════════════════════════╩═╝",
 	}
 
-	// Buttons
 	startButton   = "PLAY"
 	optionsButton = "CONFIG"
 	exitButton    = "EXIT"

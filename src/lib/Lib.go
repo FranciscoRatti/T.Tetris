@@ -1,15 +1,19 @@
 package lib
 
 import (
-	"strings"
+	"strconv"
 
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
 )
 
+// Variables globales --------------------------------------------------------------------------------------------------
+
 var RESOURCES_PATH string
 var CONFIG_PATH string
 var VAR_PATH string
+
+// Pantalla ------------------------------------------------------------------------------------------------------------
 
 var Screen tcell.Screen
 var DefaultStyle = tcell.StyleDefault.Background(color.Reset).Foreground(color.NewRGBColor(0, 255, 0))
@@ -33,7 +37,6 @@ var BackgroundShadowStyles = [10]tcell.Style{
 var (
 	Height int
 	Width  int
-	Mute   = false
 )
 
 func DrawString(x, y int, text []string, style tcell.Style) {
@@ -84,12 +87,36 @@ func DrawWithFrame(x, y int, text []string, style tcell.Style) {
 	DrawString(x+1, y+1, text, style)
 }
 
-func AppendBlank(text string, length int) string {
-	if text == "0" {
-		return strings.Repeat(" ", length)
-	}
+// Formato -------------------------------------------------------------------------------------------------------------
+
+func Append(text string, length int, char string) string {
 	for len(text) < length {
-		text = " " + text
+		text = char + text
 	}
 	return text
+}
+
+func FormatNumber(number int64) string {
+	result := ""
+	if number > 1000000 {
+		result += strconv.FormatInt(number/1000000, 10) + "."
+	}
+	if number > 1000 {
+		thousand := strconv.FormatInt(number%1000000/1000, 10) + "."
+		if number > 1000000 {
+			result += Append(thousand, 4, "0")
+		} else {
+			result += thousand
+		}
+	}
+	if number >= 0 {
+		hundred := strconv.FormatInt(number%1000, 10)
+		if number > 1000 {
+			result += Append(hundred, 3, "0")
+		} else {
+			result += hundred
+		}
+	}
+
+	return result
 }

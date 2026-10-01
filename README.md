@@ -1,9 +1,9 @@
 # T.Tetris
 
-Tetris en la terminal, pensado para usarse en la TTY de linux, inspirado en las primeras versiones.
-Es compatible con **Linux** y **Windows**.
+Tetris en la terminal, inspirado en las primeras versiones. Es compatible con **Linux** y
+**Windows**. Esta 100% programado en **Go** usando la librería **tcell** para la interfaz
 
-![vista-previa.png](images/vista-previa.png)
+![preview.png](images/preview.gif)
 
 ### Indices
 
@@ -23,16 +23,19 @@ sistema de puntuacion es igual al original: <br>
 |   3    | 300 x Nivel  |
 |   4    | 1200 x Nivel |
 
+Tambien tiene una tabla de puntuaciones local.
+
 ## Recomendaciones
 
 Como minimo se recomienda una pantalla de **60x22**, pero lo ideal es **90x30** o mas.
 
-En cuanto a las fuentes se recomiendan fuentes de tipo **VGA** como las **IBM BIOS**, la que se usa
-en la vista previa es la **AcPlus IBM VGA 8x16**. Estas fuentes las puedes encontrar en
-[Oldschool PC Fonts](https://int10h.org/oldschool-pc-fonts/)
+En cuanto a las fuentes, si quieres algo muy retro te recomiendo una fuentes de tipo **VGA** como
+las **IBM BIOS**, estas fuentes las puedes encontrar en [Oldschool PC Fonts](https://int10h.org/oldschool-pc-fonts/). Si queres algo
+mas moderno puedes usar una **NERD FONT** pixelada, como la **GohuFont 14 Nerd Font Mono** que es la
+que se usa en la previsualizacion, estas las encontrar en [Nerd Fonts](https://www.nerdfonts.com/font-downloads)
 
-Para la terminal se puede usar cualquiera, las recomendadas para Linux son **XTerm**, **Alacritty**,
-**Kitty** o la **TTY** nativa.
+Para la terminal se puede usar cualquiera pero se recomiendan terminales con soporte a 256 colores,
+las recomendadas para Linux son **Alacritty** y **Kitty**.
 
 ## Instalación
 
@@ -49,7 +52,7 @@ Para la terminal se puede usar cualquiera, las recomendadas para Linux son **XTe
 ### Linux
 
 Descarga el archivo **[TTetris.zip](https://raw.githubusercontent.com/FranciscoRatti/T.Tetris/main/TTetris-linux.zip)**
-que contiene todos los archivos necesarios para la instalacion, desde github o usando curl:
+que contiene todos los archivos necesarios para la instalación, desde github o usando curl:
 
 ```shell
 curl -L -O https://github.com/FranciscoRatti/T.Tetris/releases/download/latest/TTetris-linux.zip
@@ -135,8 +138,8 @@ Para **DESINSTALAR** el tetris puedes ejecutar el desinstalador:
 
 ### Source Code
 
-Podes compilar y ejecutar el proyecto en tu máquina, antes debes tener instalado **golang**. Para eso
-primero cloná el repositorio:
+Podes compilar y ejecutar el proyecto en tu máquina, antes debes tener instalado **golang**. Luego
+cloná el repositorio:
 
 ```shell
 git clone https://github.com/FranciscoRatti/T.Tetris.git
@@ -148,21 +151,23 @@ Para compilar puedes ejecutar:
 go build src/Main.go
 ```
 
-Antes de ejecutar el binario hay dos cosas que debes de tener en cuenta:
+Antes de ejecutar el binario hay tres cosas que debes de tener en cuenta:
 
 - Donde irán los **archivos estáticos**, estos son los audios y el icono, (png o ico). Los audios
-tienen que ir dentro de un directorio llamado **audio**
+tienen que ir dentro de un subdirectorio llamado **audio**
 - Donde irá el archivo de **configuración**. 
+- Donde irá el archivo que guarda el scoreboard llamado **scoreboard.obj**.
 
-Luego de tener esto claro, es necesario especificar estos dos path incluyendo los siguientes
-parámetros al ejecutar el binario:
+Luego de tener esto claro, es necesario especificar estos tres paths incluyendo los siguientes
+parámetros en cualquier orden al ejecutar el binario:
 
 ```shell
-[ejecutable] --resources [path] --config [path]
+[ejecutable] --resources [path] --config [path] --var [path]
 ```
 
-Si estas en el directorio del repositorio podes remplazar las dos veces que aparece **[path]** por
-**resources/** porque en el repositorio los archivos estáticos y la config estan en ese directorio.
+Si estas en el directorio del repositorio podes remplazar las tres veces que aparece **[path]** por
+**resources/** porque en el repositorio los archivos estáticos, la config y scoreboard.obj estan en
+ese directorio.
 
 Para ejecutar sin compilar podes ejecutar el mismo comando anterior remplazando **[ejecutable]** por
 **go run src/Main.go**

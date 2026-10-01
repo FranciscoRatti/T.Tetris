@@ -123,6 +123,8 @@ var (
 	}
 )
 
+// Getters, Setters y Constructor --------------------------------------------------------------------------------------
+
 func NewPiece(nextPieces [3]*Piece) *Piece {
 
 	id := byte(rand.Intn(7))
@@ -134,8 +136,67 @@ func NewPiece(nextPieces [3]*Piece) *Piece {
 	return newPiece
 }
 
-// Dibujar
-func (p Piece) Draw(stationaryPieces []string) {
+func (p *Piece) GetId() byte {
+	return p.id
+}
+
+func (p *Piece) GetActualSprite() []string {
+	return p.sprite[p.r]
+}
+
+func (p *Piece) GetSprite(r int) []string {
+	switch p.id {
+	case 0, 1, 5:
+		return p.sprite[r]
+	case 2, 3, 6:
+		return p.sprite[r/2]
+	default:
+		return p.sprite[0]
+	}
+
+}
+
+func (p *Piece) GetStyle() tcell.Style {
+	return p.style
+}
+
+func (p *Piece) SetPos(x, y int) {
+	p.x = x
+	p.y = y
+}
+
+func (p *Piece) GetY() int {
+	return p.y
+}
+func (p *Piece) GetX() int {
+	return p.x
+}
+
+func (p *Piece) SetRotation(r int) {
+	if p.id != 4 {
+		p.r = r
+	}
+}
+
+func IsEmpty(stationaryPieces []string, pos [][]int) bool {
+	for i := range pos {
+		if pos[i][0] >= 20 || pos[i][1] >= 20 || pos[i][0] < 0 {
+			return false
+		}
+
+		if pos[i][1] >= 0 {
+			c := stationaryPieces[pos[i][1]][pos[i][0]]
+			if c != ' ' {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+// Draw ----------------------------------------------------------------------------------------------------------------
+
+func (p *Piece) Draw(stationaryPieces []string) {
 	width, height := lib.Screen.Size()
 
 	// Sombra
@@ -161,59 +222,8 @@ func (p Piece) Draw(stationaryPieces []string) {
 	}
 }
 
-func (p Piece) GetId() byte {
-	return p.id
-}
+// Movimiento ----------------------------------------------------------------------------------------------------------
 
-func (p Piece) GetActualSprite() []string {
-	return p.sprite[p.r]
-}
-
-func (p Piece) GetSprite(r int) []string {
-	switch p.id {
-	case 0, 1, 5:
-		return p.sprite[r]
-	case 2, 3, 6:
-		return p.sprite[r/2]
-	default:
-		return p.sprite[0]
-	}
-
-}
-
-func (p Piece) GetStyle() tcell.Style {
-	return p.style
-}
-
-func (p *Piece) SetPos(x, y int) {
-	p.x = x
-	p.y = y
-}
-
-func (p Piece) GetY() int {
-	return p.y
-}
-func (p Piece) GetX() int {
-	return p.x
-}
-
-func IsEmpty(stationaryPieces []string, pos [][]int) bool {
-	for i := range pos {
-		if pos[i][0] >= 20 || pos[i][1] >= 20 || pos[i][0] < 0 {
-			return false
-		}
-
-		if pos[i][1] >= 0 {
-			c := stationaryPieces[pos[i][1]][pos[i][0]]
-			if c != ' ' {
-				return false
-			}
-		}
-	}
-	return true
-}
-
-// Movimiento
 func (p *Piece) MoveRight(stationaryPieces []string) {
 	switch p.id {
 	case 0:
@@ -733,7 +743,7 @@ func (p *Piece) MoveFloor(stationaryPieces []string) {
 	p.y = p.GetFloorRow(stationaryPieces)
 }
 
-func (p Piece) GetFloorRow(stationaryPieces []string) int {
+func (p *Piece) GetFloorRow(stationaryPieces []string) int {
 	y := p.y
 	switch p.id {
 	case 0:
@@ -901,7 +911,6 @@ func (p Piece) GetFloorRow(stationaryPieces []string) int {
 	return y
 }
 
-// Rotacion
 func (p *Piece) RotateRight(stationaryPieces []string) {
 	switch p.id {
 	case 0:
@@ -1178,11 +1187,5 @@ func (p *Piece) RotateRight(stationaryPieces []string) {
 				}
 			}
 		}
-	}
-}
-
-func (p *Piece) SetRotation(r int) {
-	if p.id != 4 {
-		p.r = r
 	}
 }

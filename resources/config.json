@@ -5,7 +5,7 @@
 		"show_background": true
 	},
 	"key_binding": {
-		"right": "right",
+		"right": "Right",
 		"down": "down",
 		"left": "left",
 		"rotate": "up",
@@ -16,11 +16,11 @@
 	},
 	"volume": {
 		"music": {
-			"value": 1,
-			"mute": false
+			"value": 0.7,
+			"mute": true
 		},
 		"effects": {
-			"value": 1,
+			"value": 0.85,
 			"mute": false
 		}
 	}

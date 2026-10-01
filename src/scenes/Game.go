@@ -25,11 +25,13 @@ var (
 	nextPieces   [3]*obj.Piece
 	holdPiece    *obj.Piece
 
-	score            int64
-	lines            uint64
-	level            uint8
-	newEntryPosition byte
-	newEntryName     string
+	score int64
+	lines uint64
+	level uint8
+
+	newEntryIndex byte
+	newEntryName  string
+	newEntryStyle = &lib.DefaultStyle
 )
 
 func StartNewGame() {
@@ -37,10 +39,8 @@ func StartNewGame() {
 	drawGame()
 	obj.Timer.Start()
 
-	// Bucle ------------------------------------------------
+	// Bucle
 	for isRunning {
-
-		// Eventos
 		event := <-lib.Screen.EventQ()
 
 		switch event := event.(type) {
@@ -49,132 +49,13 @@ func StartNewGame() {
 			s := event.Str()
 
 			if isGameOver {
-				if newEntryPosition != 0 {
+				if newEntryIndex != 0 { // Sí hay nueva entry
 					if k == tcell.KeyEsc {
-						newEntryPosition = 0
+						newEntryIndex = 0
 					} else if k == tcell.KeyEnter {
 						if len(newEntryName) == 3 {
-							needReorder := 0
-
-							if obj.Scoreboard.First.Name == newEntryName {
-								if obj.Scoreboard.First.Score < score {
-									obj.Scoreboard.First.Score = score
-									needReorder = 1
-								}
-							} else if obj.Scoreboard.Second.Name == newEntryName {
-								if obj.Scoreboard.Second.Score < score {
-									obj.Scoreboard.Second.Score = score
-									needReorder = 2
-								}
-							} else if obj.Scoreboard.Third.Name == newEntryName {
-								if obj.Scoreboard.Third.Score < score {
-									obj.Scoreboard.Third.Score = score
-									needReorder = 3
-								}
-							} else if obj.Scoreboard.Fourth.Name == newEntryName {
-								if obj.Scoreboard.Fourth.Score < score {
-									obj.Scoreboard.Fourth.Score = score
-									needReorder = 4
-								}
-							} else if obj.Scoreboard.Fifth.Name == newEntryName {
-								if obj.Scoreboard.Fifth.Score < score {
-									obj.Scoreboard.Fifth.Score = score
-									needReorder = 5
-								}
-							} else {
-								if newEntryPosition < 5 {
-									obj.Scoreboard.Fifth.Name = obj.Scoreboard.Fourth.Name
-									obj.Scoreboard.Fifth.Score = obj.Scoreboard.Fourth.Score
-								}
-								if newEntryPosition < 4 {
-									obj.Scoreboard.Fourth.Name = obj.Scoreboard.Third.Name
-									obj.Scoreboard.Fourth.Score = obj.Scoreboard.Third.Score
-								}
-								if newEntryPosition < 3 {
-									obj.Scoreboard.Third.Name = obj.Scoreboard.Second.Name
-									obj.Scoreboard.Third.Score = obj.Scoreboard.Second.Score
-								}
-								if newEntryPosition < 2 {
-									obj.Scoreboard.Second.Name = obj.Scoreboard.First.Name
-									obj.Scoreboard.Second.Score = obj.Scoreboard.First.Score
-								}
-
-								switch newEntryPosition {
-								case 1:
-									obj.Scoreboard.First.Name = newEntryName
-									obj.Scoreboard.First.Score = score
-								case 2:
-									obj.Scoreboard.Second.Name = newEntryName
-									obj.Scoreboard.Second.Score = score
-								case 3:
-									obj.Scoreboard.Third.Name = newEntryName
-									obj.Scoreboard.Third.Score = score
-								case 4:
-									obj.Scoreboard.Fourth.Name = newEntryName
-									obj.Scoreboard.Fourth.Score = score
-								case 5:
-									obj.Scoreboard.Fifth.Name = newEntryName
-									obj.Scoreboard.Fifth.Score = score
-								}
-							}
-
-							if needReorder > 1 {
-								done := false
-								for i := needReorder; i > 1 && !done; i-- {
-									switch i {
-									case 5:
-										if obj.Scoreboard.Fourth.Score < obj.Scoreboard.Fifth.Score {
-											auxScore := obj.Scoreboard.Fourth.Score
-											obj.Scoreboard.Fourth.Score = obj.Scoreboard.Fifth.Score
-											obj.Scoreboard.Fifth.Score = auxScore
-
-											auxName := obj.Scoreboard.Fourth.Name
-											obj.Scoreboard.Fourth.Name = obj.Scoreboard.Fifth.Name
-											obj.Scoreboard.Fifth.Name = auxName
-										} else {
-											done = true
-										}
-									case 4:
-										if obj.Scoreboard.Third.Score < obj.Scoreboard.Fourth.Score {
-											auxScore := obj.Scoreboard.Third.Score
-											obj.Scoreboard.Third.Score = obj.Scoreboard.Fourth.Score
-											obj.Scoreboard.Fourth.Score = auxScore
-
-											auxName := obj.Scoreboard.Third.Name
-											obj.Scoreboard.Third.Name = obj.Scoreboard.Fourth.Name
-											obj.Scoreboard.Fourth.Name = auxName
-										} else {
-											done = true
-										}
-									case 3:
-										if obj.Scoreboard.Second.Score < obj.Scoreboard.Third.Score {
-											auxScore := obj.Scoreboard.Second.Score
-											obj.Scoreboard.Second.Score = obj.Scoreboard.Third.Score
-											obj.Scoreboard.Third.Score = auxScore
-
-											auxName := obj.Scoreboard.Second.Name
-											obj.Scoreboard.Second.Name = obj.Scoreboard.Third.Name
-											obj.Scoreboard.Third.Name = auxName
-										} else {
-											done = true
-										}
-									case 2:
-										if obj.Scoreboard.First.Score < obj.Scoreboard.Second.Score {
-											auxScore := obj.Scoreboard.First.Score
-											obj.Scoreboard.First.Score = obj.Scoreboard.Second.Score
-											obj.Scoreboard.Second.Score = auxScore
-
-											auxName := obj.Scoreboard.First.Name
-											obj.Scoreboard.First.Name = obj.Scoreboard.Second.Name
-											obj.Scoreboard.Second.Name = auxName
-										} else {
-											done = true
-										}
-									}
-								}
-							}
-
-							newEntryPosition = 0
+							obj.Scoreboard.AddEntry(newEntryName, score, newEntryIndex)
+							newEntryIndex = 0
 						}
 					} else {
 						if len(newEntryName) < 3 {
@@ -190,7 +71,7 @@ func StartNewGame() {
 							newEntryName = newEntryName[:len(newEntryName)-1]
 						}
 					}
-				} else {
+				} else { // Sí perdió
 					switch k {
 					case tcell.KeyDown:
 						obj.KeyAudio.Play()
@@ -216,12 +97,11 @@ func StartNewGame() {
 							initializeGame()
 							obj.Timer.Start()
 						case 1:
-							obj.EnterAudio.Play()
 							isRunning = false
 						}
 					}
 				}
-			} else if isPause {
+			} else if isPause { // Sí se pausa
 				if k == tcell.KeyDown {
 					obj.KeyAudio.Play()
 
@@ -252,6 +132,7 @@ func StartNewGame() {
 						obj.Timer.Start()
 					case 2:
 						obj.EnterAudio.Play()
+
 						isRunning = false
 					}
 				} else if obj.KeyPause.Equals(k, s) {
@@ -260,11 +141,11 @@ func StartNewGame() {
 					isPause = false
 					obj.Timer.Resume()
 				}
-			} else {
-				if obj.KeyRight.Equals(k, s) {
+			} else { // Normal
+				if obj.KeyRight.Equals(k, s) { // Derecha
 					obj.MoveAudio.Play()
 					currentPiece.MoveRight(stationaryPieces)
-				} else if obj.KeyDown.Equals(k, s) {
+				} else if obj.KeyDown.Equals(k, s) { // Abajo
 					obj.MoveAudio.Play()
 					obj.Timer.UpdateLastExec()
 					if !currentPiece.MoveDown(stationaryPieces) {
@@ -273,13 +154,13 @@ func StartNewGame() {
 					} else {
 						score++
 					}
-				} else if obj.KeyLeft.Equals(k, s) {
+				} else if obj.KeyLeft.Equals(k, s) { // Izquierda
 					obj.MoveAudio.Play()
 					currentPiece.MoveLeft(stationaryPieces)
-				} else if obj.KeyRotate.Equals(k, s) {
+				} else if obj.KeyRotate.Equals(k, s) { // Rotar
 					obj.RotateAudio.Play()
 					currentPiece.RotateRight(stationaryPieces)
-				} else if obj.KeyHold.Equals(k, s) {
+				} else if obj.KeyHold.Equals(k, s) { // Holdear
 					if obj.Config.Game.Hold && !isHold {
 						obj.KeyAudio.Play()
 
@@ -301,7 +182,7 @@ func StartNewGame() {
 							holdPiece = lastPiece
 						}
 					}
-				} else if obj.KeyFloor.Equals(k, s) {
+				} else if obj.KeyFloor.Equals(k, s) { // Piso
 					obj.FloorAudio.Play()
 
 					obj.Timer.UpdateLastExec()
@@ -310,7 +191,7 @@ func StartNewGame() {
 					score += int64(currentPiece.GetY() - currentY)
 
 					onChangePiece()
-				} else if obj.KeyPause.Equals(k, s) {
+				} else if obj.KeyPause.Equals(k, s) { // Pausa
 					obj.PauseAudio.Play()
 
 					isPause = true
@@ -320,36 +201,26 @@ func StartNewGame() {
 			}
 
 			if obj.KeyMute.Equals(k, s) {
-				if lib.Mute {
-					lib.Mute = false
-					obj.ChangeMuteEffectsWithoutChange(obj.Config.Volume.Effects.Mute)
-					obj.ChangeMuteMusicWithoutChange(obj.Config.Volume.Music.Mute)
-				} else {
-					lib.Mute = true
-					obj.ChangeMuteEffectsWithoutChange(true)
-					obj.ChangeMuteMusicWithoutChange(true)
-				}
+				obj.ChangeMuteAll()
 			}
 		case *tcell.EventResize:
 			lib.Width, lib.Height = lib.Screen.Size()
 		}
 
-		// Pintar
 		drawGame()
 	}
 
-	// Fin
 	obj.Timer.Stop()
 	isFireworkShowing = false
 	obj.GameAudio.Stop()
 }
 
-// Funciones -----------------------------------------
+// Draw ----------------------------------------------------------------------------------------------------------------
 
 func drawGame() {
 	lib.Screen.Clear()
 
-	// Fireworks
+	// Fuegos artificiales
 	if isFireworkShowing {
 		for i, index := range fireworkFramesIndex {
 			if index >= 0 {
@@ -366,67 +237,50 @@ func drawGame() {
 
 	// Nivel
 	lib.DrawString(lib.Width/2-21, lib.Height/2-4, levelFrame, lib.DefaultStyle)
-	lib.Screen.PutStrStyled(lib.Width/2-19, lib.Height/2-2, lib.AppendBlank(strconv.Itoa(int(level)), 3), lib.DefaultStyle)
+	lib.Screen.PutStrStyled(lib.Width/2-19, lib.Height/2-2, lib.Append(lib.FormatNumber(int64(level)), 3, " "), lib.DefaultStyle)
 
 	// Lineas
 	lib.DrawString(lib.Width/2-25, lib.Height/2+1, linesFrame, lib.DefaultStyle)
-	var linesString string
-	if lines >= 1000 {
-		linesString = lib.AppendBlank(strconv.Itoa(int((lines%1000000)/1000)), 3) + "." + lib.AppendBlank(strconv.Itoa(int(lines%1000)), 3)
-	} else if lines >= 1 {
-		linesString = "    " + lib.AppendBlank(strconv.Itoa(int(lines%1000)), 3)
-	} else {
-		linesString = "      0"
-	}
-	lib.Screen.PutStrStyled(lib.Width/2-23, lib.Height/2+3, linesString, lib.DefaultStyle)
+	lib.Screen.PutStrStyled(lib.Width/2-23, lib.Height/2+3, lib.Append(lib.FormatNumber(int64(lines)), 7, " "), lib.DefaultStyle)
 
 	// Score
 	lib.DrawString(lib.Width/2-29, lib.Height/2+6, scoreFrame, lib.DefaultStyle)
-	var scoreString string
-	if score >= 1000000 {
-		scoreString = lib.AppendBlank(strconv.Itoa(int(score%1000000000)/1000000), 3) + "." + lib.AppendBlank(strconv.Itoa(int((score%1000000)/1000)), 3) + "." + lib.AppendBlank(strconv.Itoa(int(score%1000)), 3)
-	} else if score >= 1000 {
-		scoreString = "    " + lib.AppendBlank(strconv.Itoa(int((score%1000000)/1000)), 3) + "." + lib.AppendBlank(strconv.Itoa(int(score%1000)), 3)
-	} else if score >= 1 {
-		scoreString = "        " + lib.AppendBlank(strconv.Itoa(int(score%1000)), 3)
-	} else {
-		scoreString = "          0"
-	}
-	lib.Screen.PutStrStyled(lib.Width/2-27, lib.Height/2+8, scoreString, lib.DefaultStyle)
+	lib.Screen.PutStrStyled(lib.Width/2-27, lib.Height/2+8, lib.Append(lib.FormatNumber(score), 11, " "), lib.DefaultStyle)
 
 	// Scoreboard
 	lib.DrawString(lib.Width/2+14, lib.Height/2+3, scoreboardFrame, lib.DefaultStyle)
 	lib.Screen.PutStrStyled(lib.Width/2+19, lib.Height/2+4, obj.Scoreboard.First.Name, lib.DefaultStyle)
-	lib.Screen.PutStrStyled(lib.Width/2+25, lib.Height/2+4, strconv.FormatInt(obj.Scoreboard.First.Score, 10), lib.DefaultStyle)
+	lib.Screen.PutStrStyled(lib.Width/2+25, lib.Height/2+4, lib.FormatNumber(obj.Scoreboard.First.Score), lib.DefaultStyle)
 	lib.Screen.PutStrStyled(lib.Width/2+19, lib.Height/2+5, obj.Scoreboard.Second.Name, lib.DefaultStyle)
-	lib.Screen.PutStrStyled(lib.Width/2+25, lib.Height/2+5, strconv.FormatInt(obj.Scoreboard.Second.Score, 10), lib.DefaultStyle)
+	lib.Screen.PutStrStyled(lib.Width/2+25, lib.Height/2+5, lib.FormatNumber(obj.Scoreboard.Second.Score), lib.DefaultStyle)
 	lib.Screen.PutStrStyled(lib.Width/2+19, lib.Height/2+6, obj.Scoreboard.Third.Name, lib.DefaultStyle)
-	lib.Screen.PutStrStyled(lib.Width/2+25, lib.Height/2+6, strconv.FormatInt(obj.Scoreboard.Third.Score, 10), lib.DefaultStyle)
+	lib.Screen.PutStrStyled(lib.Width/2+25, lib.Height/2+6, lib.FormatNumber(obj.Scoreboard.Third.Score), lib.DefaultStyle)
 	lib.Screen.PutStrStyled(lib.Width/2+19, lib.Height/2+7, obj.Scoreboard.Fourth.Name, lib.DefaultStyle)
-	lib.Screen.PutStrStyled(lib.Width/2+25, lib.Height/2+7, strconv.FormatInt(obj.Scoreboard.Fourth.Score, 10), lib.DefaultStyle)
+	lib.Screen.PutStrStyled(lib.Width/2+25, lib.Height/2+7, lib.FormatNumber(obj.Scoreboard.Fourth.Score), lib.DefaultStyle)
 	lib.Screen.PutStrStyled(lib.Width/2+19, lib.Height/2+8, obj.Scoreboard.Fifth.Name, lib.DefaultStyle)
-	lib.Screen.PutStrStyled(lib.Width/2+25, lib.Height/2+8, strconv.FormatInt(obj.Scoreboard.Fifth.Score, 10), lib.DefaultStyle)
+	lib.Screen.PutStrStyled(lib.Width/2+25, lib.Height/2+8, lib.FormatNumber(obj.Scoreboard.Fifth.Score), lib.DefaultStyle)
 
-	if newEntryPosition != 0 {
+	if newEntryIndex != 0 { // Si hay nueva entrada
 		lib.Screen.PutStrStyled(lib.Width/2+18, lib.Height/2+3, "NEW__ENTRY", lib.DefaultStyle)
-		lib.Screen.PutStrStyled(lib.Width/2+14, lib.Height/2+3+int(newEntryPosition), ">", lib.DefaultStyle)
-		lib.Screen.PutStrStyled(lib.Width/2+19, lib.Height/2+3+int(newEntryPosition), "___", lib.DefaultStyle)
-		lib.Screen.PutStrStyled(lib.Width/2+19, lib.Height/2+3+int(newEntryPosition), newEntryName, lib.DefaultStyle)
-		lib.Screen.PutStrStyled(lib.Width/2+25, lib.Height/2+3+int(newEntryPosition), strconv.FormatInt(score, 10), lib.DefaultStyle)
+		lib.Screen.PutStrStyled(lib.Width/2+14, lib.Height/2+3+int(newEntryIndex), ">", lib.DefaultStyle)
+		lib.Screen.PutStrStyled(lib.Width/2+19, lib.Height/2+3+int(newEntryIndex), "___", *newEntryStyle)
+		lib.Screen.PutStrStyled(lib.Width/2+19, lib.Height/2+3+int(newEntryIndex), newEntryName, *newEntryStyle)
+		lib.Screen.PutStrStyled(lib.Width/2+25, lib.Height/2+3+int(newEntryIndex), lib.FormatNumber(score), lib.DefaultStyle)
+		lib.Screen.PutStrStyled(lib.Width/2+15, lib.Height/2+10, "(esc for cancel)", lib.DefaultStyle)
 
-		if newEntryPosition < 5 {
+		if newEntryIndex < 5 {
 			lib.Screen.PutStrStyled(lib.Width/2+19, lib.Height/2+8, obj.Scoreboard.Fourth.Name, lib.DefaultStyle)
 			lib.Screen.PutStrStyled(lib.Width/2+25, lib.Height/2+8, strconv.FormatInt(obj.Scoreboard.Fourth.Score, 10), lib.DefaultStyle)
 		}
-		if newEntryPosition < 4 {
+		if newEntryIndex < 4 {
 			lib.Screen.PutStrStyled(lib.Width/2+19, lib.Height/2+7, obj.Scoreboard.Third.Name, lib.DefaultStyle)
 			lib.Screen.PutStrStyled(lib.Width/2+25, lib.Height/2+7, strconv.FormatInt(obj.Scoreboard.Third.Score, 10), lib.DefaultStyle)
 		}
-		if newEntryPosition < 3 {
+		if newEntryIndex < 3 {
 			lib.Screen.PutStrStyled(lib.Width/2+19, lib.Height/2+6, obj.Scoreboard.Second.Name, lib.DefaultStyle)
 			lib.Screen.PutStrStyled(lib.Width/2+25, lib.Height/2+6, strconv.FormatInt(obj.Scoreboard.Second.Score, 10), lib.DefaultStyle)
 		}
-		if newEntryPosition < 2 {
+		if newEntryIndex < 2 {
 			lib.Screen.PutStrStyled(lib.Width/2+19, lib.Height/2+5, obj.Scoreboard.First.Name, lib.DefaultStyle)
 			lib.Screen.PutStrStyled(lib.Width/2+25, lib.Height/2+5, strconv.FormatInt(obj.Scoreboard.First.Score, 10), lib.DefaultStyle)
 		}
@@ -440,7 +294,7 @@ func drawGame() {
 		// Pieza
 		currentPiece.Draw(stationaryPieces)
 
-		// Siguiente
+		// Siguientes
 		lib.DrawString(lib.Width/2+14, lib.Height/2-11, []string{"NEXT"}, lib.DefaultStyle)
 		var height int
 		for _, p := range nextPieces {
@@ -482,29 +336,109 @@ func drawGame() {
 	if isGameOver {
 		lib.DrawString(lib.Width/2-7, lib.Height/2-2, gameOverFrame, lib.GameOverStyle)
 
-		if newEntryPosition == 0 {
-			alto := 0
+		if newEntryIndex == 0 {
+			i := 0
 			switch selectedButton {
 			case 0:
-				alto = 0
+				i = 0
 			case 1:
-				alto = 1
+				i = 1
 			}
-			lib.DrawString(lib.Width/2-5, lib.Height/2-1+alto, []string{">"}, lib.GameOverStyle)
+			lib.DrawString(lib.Width/2-5, lib.Height/2-1+i, []string{">"}, lib.GameOverStyle)
 		}
 	}
 
 	lib.Screen.Show()
 }
 
+func startFireworkAnimation() {
+
+	// Audio
+	obj.FireworksAudio.Play()
+
+	fireworksPosX := make([]int, 10)
+	fireworksPosY := make([]int, 10)
+	isFireworkShowing = true
+
+	// Generar
+	for i, t := range fireworkTimes {
+
+		// Sleep
+		time.Sleep(t)
+
+		if !isFireworkShowing {
+			break
+		}
+
+		// Chequear
+		var x, y int
+		isRightOnTop := true
+		for isRightOnTop {
+			isRightOnTop = false
+
+			x = rand.Intn(90)
+			y = rand.Intn(40)
+
+			if (x >= 22 && x <= 46) && (y >= 3 && y <= 25) {
+				isRightOnTop = true
+				continue
+			}
+
+			if i != 0 {
+				for j := int(math.Max(0, float64(i-5))); j < i-1; j++ {
+					if (x >= fireworksPosX[j] && x <= fireworksPosX[j]+13) &&
+						(y >= fireworksPosY[j] && y <= fireworksPosY[j]+13) {
+						isRightOnTop = true
+						continue
+					}
+				}
+			}
+		}
+
+		// Guardar posición
+		fireworksPosX[i] = x
+		fireworksPosY[i] = y
+
+		// Ejecutar animación
+		go func() {
+			index := i
+			fireworksX[index] = lib.Width/2 + (x - 45) - 7
+			fireworksY[index] = lib.Height/2 + (y - 20) - 7
+
+			now := time.Now()
+			for j := range fireworkFrames {
+				if !isFireworkShowing {
+					break
+				}
+
+				fireworkFramesIndex[index] = j
+				drawGame()
+
+				for time.Since(now) < 100*time.Millisecond {
+					time.Sleep(10 * time.Millisecond)
+				}
+				now = time.Now()
+			}
+			fireworkFramesIndex[index] = -1
+			drawGame()
+			if index == 9 {
+				isFireworkShowing = false
+			}
+		}()
+	}
+}
+
+// Logica --------------------------------------------------------------------------------------------------------------
+
 func initializeGame() {
 
-	// Variables
+	// Condiciones
 	isRunning = true
 	isGameOver = false
 	isHold = false
 	isPause = false
 
+	// Piezas
 	currentPiece = &obj.Pieces[rand.Intn(7)]
 	currentPiece.SetPos(8, 0)
 	currentPiece.SetRotation(0)
@@ -512,13 +446,16 @@ func initializeGame() {
 	nextPieces = [3]*obj.Piece([]*obj.Piece{&obj.Pieces[rand.Intn(7)], &obj.Pieces[rand.Intn(7)], &obj.Pieces[rand.Intn(7)]})
 	holdPiece = nil
 
+	// Valores
 	score = 0
 	lines = 0
 	level = 1
 
-	newEntryPosition = 0
+	// Entries
+	newEntryIndex = 0
 	newEntryName = ""
 
+	// Piezas quietas
 	stationaryPieces = make([]string, 20)
 	for i := range stationaryPieces {
 		stationaryPieces[i] = "                    "
@@ -532,18 +469,16 @@ func initializeGame() {
 		}
 	}
 
+	// Fuegos artificiales
 	for i := range 10 {
 		fireworkFramesIndex[i] = -1
 	}
 
 	// Timer
 	obj.Timer.Initialize(800, func() {
-
-		// Cambiar pieza
 		if !currentPiece.MoveDown(stationaryPieces) {
 			onChangePiece()
 		}
-
 		drawGame()
 	})
 
@@ -568,6 +503,10 @@ func onChangePiece() {
 func putStationaryPieces(piece obj.Piece) {
 	x := piece.GetX()
 	y := piece.GetY()
+
+	if y < 0 {
+		return
+	}
 
 	for iR, r := range piece.GetActualSprite() {
 		line := stationaryPieces[y+iR]
@@ -602,6 +541,7 @@ func checkLines() {
 			}
 		}
 
+		// Si hay linea
 		if cells == 10 {
 			lines++
 			continuosLines++
@@ -634,6 +574,7 @@ func checkLines() {
 		}
 	}
 
+	// Puntos
 	if continuosLines != 0 {
 		if isLevelUp {
 			obj.LevelUpAudio.Play()
@@ -664,93 +605,47 @@ func checkGameOver() {
 		channel := obj.GameOverAudio.PlayAndWait()
 
 		if score > obj.Scoreboard.First.Score {
-			newEntryPosition = 1
+			newEntryIndex = 1
 		} else if score > obj.Scoreboard.Second.Score {
-			newEntryPosition = 2
+			newEntryIndex = 2
 		} else if score > obj.Scoreboard.Third.Score {
-			newEntryPosition = 3
+			newEntryIndex = 3
 		} else if score > obj.Scoreboard.Fourth.Score {
-			newEntryPosition = 4
+			newEntryIndex = 4
 		} else if score > obj.Scoreboard.Fifth.Score {
-			newEntryPosition = 5
+			newEntryIndex = 5
 		}
 
-		go func() {
-			<-channel
-			obj.FireworksAudio.Play()
-
-			fireworksPosX := make([]int, 10)
-			fireworksPosY := make([]int, 10)
-			isFireworkShowing = true
-
-			// Mostrar 10 cohetes
-			for i, t := range fireworkTimes {
-
-				// Espera
-				time.Sleep(t)
-
-				if !isFireworkShowing {
-					break
-				}
-
-				// Buscar posición
-				var x, y int
-
-				isRightOnTop := true
-				for isRightOnTop {
-					isRightOnTop = false
-
-					x = rand.Intn(90)
-					y = rand.Intn(40)
-
-					if (x >= 22 && x <= 46) && (y >= 3 && y <= 25) {
-						isRightOnTop = true
-						continue
-					}
-
-					if i != 0 {
-						for j := int(math.Max(0, float64(i-5))); j < i-1; j++ {
-							if (x >= fireworksPosX[j] && x <= fireworksPosX[j]+13) &&
-								(y >= fireworksPosY[j] && y <= fireworksPosY[j]+13) {
-								isRightOnTop = true
-								continue
-							}
-						}
-					}
-				}
-
-				fireworksPosX[i] = x
-				fireworksPosY[i] = y
-
-				go func() {
-					index := i
-					fireworksX[index] = lib.Width/2 + (x - 45) - 7
-					fireworksY[index] = lib.Height/2 + (y - 20) - 7
-
-					now := time.Now()
-					for j := range fireworkFrames {
-						if !isFireworkShowing {
-							break
-						}
-
-						fireworkFramesIndex[index] = j
-						drawGame()
-
-						for time.Since(now) < 100*time.Millisecond {
-							time.Sleep(10 * time.Millisecond)
-						}
+		// Estilo seleccionado
+		if newEntryIndex != 0 {
+			go func() {
+				now := time.Now()
+				boolean := true
+				for newEntryIndex != 0 {
+					if time.Since(now) > 400*time.Millisecond {
 						now = time.Now()
+
+						boolean = !boolean
+						if boolean {
+							newEntryStyle = &lib.DefaultStyle
+						} else {
+							newEntryStyle = &lib.SelectedStyle
+						}
+
+						drawGame()
 					}
-					fireworkFramesIndex[index] = -1
-					drawGame()
-					if index == 9 {
-						isFireworkShowing = false
-					}
-				}()
-			}
-		}()
+				}
+			}()
+
+			go func() {
+				<-channel
+				startFireworkAnimation()
+			}()
+		}
 	}
 }
+
+// Sprites -------------------------------------------------------------------------------------------------------------
 
 var (
 	frame = []string{
