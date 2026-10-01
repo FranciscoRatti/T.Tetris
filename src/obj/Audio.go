@@ -19,6 +19,7 @@ func InitSpeakers() {
 	}
 
 	EnterAudio = newBuffer(lib.RESOURCES_PATH + "audio/enter.wav")
+	FireworksAudio = newAudio(lib.RESOURCES_PATH + "audio/fireworks.wav")
 	FloorAudio = newBuffer(lib.RESOURCES_PATH + "audio/floor.wav")
 	GameAudio = newLoop(lib.RESOURCES_PATH+"audio/game.wav", -1)
 	GameOverAudio = newAudio(lib.RESOURCES_PATH + "audio/gameover.wav")
@@ -32,48 +33,53 @@ func InitSpeakers() {
 	ResumeAudio = newAudio(lib.RESOURCES_PATH + "audio/resume.wav")
 	RotateAudio = newBuffer(lib.RESOURCES_PATH + "audio/rotate.wav")
 
+	ChangeEffectsVolumeWithoutChange(calculateCorrectValue(&Config.Volume.Effects.Value))
+	ChangeMuteEffectsWithoutChange(Config.Volume.Effects.Mute)
+	ChangeMusicVolumeWithoutChange(calculateCorrectValue(&Config.Volume.Music.Value))
+	ChangeMuteMusicWithoutChange(Config.Volume.Music.Mute)
+
 	speaker.Play(GameAudio.Volume)
 	speaker.Play(MenuAudio.Volume)
-
-	ChangeMuteEffectsWithoutChange(Config.Volume.Effects.Mute)
-	ChangeMuteMusicWithoutChange(Config.Volume.Music.Mute)
 }
 
 var (
-	EnterAudio    buffer
-	FloorAudio    buffer
-	GameAudio     loop
-	GameOverAudio audio
-	KeyAudio      buffer
-	LevelUpAudio  audio
-	LineAudio     audio
-	Line4Audio    audio
-	MenuAudio     loop
-	MoveAudio     buffer
-	PauseAudio    audio
-	ResumeAudio   audio
-	RotateAudio   buffer
+	EnterAudio     buffer
+	FireworksAudio audio
+	FloorAudio     buffer
+	GameAudio      loop
+	GameOverAudio  audio
+	KeyAudio       buffer
+	LevelUpAudio   audio
+	LineAudio      audio
+	Line4Audio     audio
+	MenuAudio      loop
+	MoveAudio      buffer
+	PauseAudio     audio
+	ResumeAudio    audio
+	RotateAudio    buffer
 )
 
 func ChangeEffectsVolume(value float64) {
 	Config.Volume.Effects.Value += value
 	correctValue := calculateCorrectValue(&Config.Volume.Effects.Value)
-	if correctValue == -1 {
-		return
+	if correctValue != -1 {
+		ChangeEffectsVolumeWithoutChange(correctValue)
 	}
+}
 
+func ChangeEffectsVolumeWithoutChange(value float64) {
 	speaker.Lock()
 
-	EnterAudio.Volume.Volume = correctValue
-	FloorAudio.Volume.Volume = correctValue
-	KeyAudio.Volume.Volume = correctValue
-	LevelUpAudio.Volume.Volume = correctValue
-	LineAudio.Volume.Volume = correctValue
-	Line4Audio.Volume.Volume = correctValue
-	MoveAudio.Volume.Volume = correctValue
-	PauseAudio.Volume.Volume = correctValue
-	ResumeAudio.Volume.Volume = correctValue
-	RotateAudio.Volume.Volume = correctValue
+	EnterAudio.Volume.Volume = value
+	FloorAudio.Volume.Volume = value
+	KeyAudio.Volume.Volume = value
+	LevelUpAudio.Volume.Volume = value
+	LineAudio.Volume.Volume = value
+	Line4Audio.Volume.Volume = value
+	MoveAudio.Volume.Volume = value
+	PauseAudio.Volume.Volume = value
+	ResumeAudio.Volume.Volume = value
+	RotateAudio.Volume.Volume = value
 
 	speaker.Unlock()
 }
@@ -81,25 +87,29 @@ func ChangeEffectsVolume(value float64) {
 func ChangeMusicVolume(value float64) {
 	Config.Volume.Music.Value += value
 	correctValue := calculateCorrectValue(&Config.Volume.Music.Value)
-	if correctValue == -1 {
-		return
+	if correctValue != -1 {
+		ChangeMusicVolumeWithoutChange(correctValue)
 	}
 
+}
+
+func ChangeMusicVolumeWithoutChange(value float64) {
 	speaker.Lock()
 
-	GameAudio.Volume.Volume = correctValue
-	GameOverAudio.Volume.Volume = correctValue
-	MenuAudio.Volume.Volume = correctValue
+	FireworksAudio.Volume.Volume = value
+	GameAudio.Volume.Volume = value
+	GameOverAudio.Volume.Volume = value
+	MenuAudio.Volume.Volume = value
 
 	speaker.Unlock()
 }
 
 func calculateCorrectValue(value *float64) float64 {
-	if *value < 0.01 {
-		*value = 0.01
+	if *value < 0.15 {
+		*value = 0.15
 		return -1
-	} else if *value > 6 {
-		*value = 6
+	} else if *value > 3.75 {
+		*value = 3.75
 		return -1
 	}
 
@@ -136,6 +146,7 @@ func ChangeMuteMusic() {
 func ChangeMuteMusicWithoutChange(value bool) {
 	speaker.Lock()
 
+	FireworksAudio.Volume.Silent = value
 	GameAudio.Volume.Silent = value
 	GameOverAudio.Volume.Silent = value
 	MenuAudio.Volume.Silent = value
@@ -175,8 +186,21 @@ func (a audio) Play() {
 	if err := (*a.Audio).Seek(0); err != nil {
 		log.Fatal(err)
 	}
-
 	speaker.Play(a.Volume)
+}
+func (a audio) PlayAndWait() chan bool {
+	if err := (*a.Audio).Seek(0); err != nil {
+		log.Fatal(err)
+	}
+
+	channel := make(chan bool)
+
+	go func() {
+		speaker.PlayAndWait(a.Volume)
+		channel <- true
+	}()
+
+	return channel
 }
 
 // Buffered audio ------------------------------------------------------

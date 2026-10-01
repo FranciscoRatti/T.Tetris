@@ -61,6 +61,7 @@ func OpenMenu() {
 					obj.MenuAudio.Stop()
 					StartNewGame()
 					obj.MenuAudio.Play()
+					selectedButton = 0
 
 					if obj.Config.Game.ShowBackground {
 						channel = startBackgroundAnimation(&isMenuBackgroundRunning, drawMenu)
@@ -72,7 +73,7 @@ func OpenMenu() {
 					}
 
 					OpenConfig()
-					obj.WriteConfig()
+					selectedButton = 0
 
 					if obj.Config.Game.ShowBackground {
 						channel = startBackgroundAnimation(&isMenuBackgroundRunning, drawMenu)

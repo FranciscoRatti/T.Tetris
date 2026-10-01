@@ -63,16 +63,16 @@ func ReadConfig() {
 	KeyMute = ParseKey(Config.KeyBinding.Mute)
 
 	// Sonido
-	if Config.Volume.Effects.Value > 6 {
-		Config.Volume.Effects.Value = 6
-	} else if Config.Volume.Effects.Value < 0.25 {
-		Config.Volume.Effects.Value = 0.25
+	if Config.Volume.Effects.Value > 3.75 {
+		Config.Volume.Effects.Value = 3.75
+	} else if Config.Volume.Effects.Value < 0.15 {
+		Config.Volume.Effects.Value = 0.15
 	}
 
-	if Config.Volume.Music.Value > 6 {
-		Config.Volume.Music.Value = 6
-	} else if Config.Volume.Music.Value < 0.25 {
-		Config.Volume.Music.Value = 0.25
+	if Config.Volume.Music.Value > 3.75 {
+		Config.Volume.Music.Value = 3.75
+	} else if Config.Volume.Music.Value < 0.15 {
+		Config.Volume.Music.Value = 0.15
 	}
 
 	if err = file.Close(); err != nil {

@@ -132,9 +132,9 @@ func OpenConfig() {
 						obj.KeyAudio.Play()
 						switch selectedButtonVolumen {
 						case 0:
-							obj.ChangeMusicVolume(0.25)
+							obj.ChangeMusicVolume(0.15)
 						case 2:
-							obj.ChangeEffectsVolume(0.25)
+							obj.ChangeEffectsVolume(0.15)
 						}
 					}
 				case tcell.KeyLeft:
@@ -142,9 +142,9 @@ func OpenConfig() {
 						obj.KeyAudio.Play()
 						switch selectedButtonVolumen {
 						case 0:
-							obj.ChangeMusicVolume(-0.25)
+							obj.ChangeMusicVolume(-0.15)
 						case 2:
-							obj.ChangeEffectsVolume(-0.25)
+							obj.ChangeEffectsVolume(-0.15)
 						}
 					}
 				case tcell.KeyEnter:
@@ -285,7 +285,7 @@ func drawConfig() {
 		i++
 	}
 	lib.Screen.PutStrStyled(
-		x-len(volumeSprite)/2+1+int(math.Round(obj.Config.Volume.Music.Value/0.25)),
+		x-len(volumeSprite)/2+int(math.Round(obj.Config.Volume.Music.Value/0.15)),
 		int(math.Round(float64(minY+1)+spacingY32+spacingY16)),
 		"<>", lib.DefaultStyle)
 	if obj.Config.Volume.Music.Mute {
@@ -295,7 +295,7 @@ func drawConfig() {
 			"x", lib.DefaultStyle)
 	}
 	lib.Screen.PutStrStyled(
-		x-len(volumeSprite)/2+1+int(math.Round(obj.Config.Volume.Effects.Value/0.25)),
+		x-len(volumeSprite)/2+int(math.Round(obj.Config.Volume.Effects.Value/0.15)),
 		int(math.Round(float64(minY+1)+spacingY32+spacingY16*5)),
 		"<>", lib.DefaultStyle)
 	if obj.Config.Volume.Effects.Mute {
@@ -398,7 +398,7 @@ func drawConfig() {
 		switch selectedButtonVolumen {
 		case 0:
 			lib.Screen.PutStrStyled(
-				x-len(volumeSprite)/2+1+int(math.Round(obj.Config.Volume.Music.Value/0.25)),
+				x-len(volumeSprite)/2+int(math.Round(obj.Config.Volume.Music.Value/0.15)),
 				int(math.Round(float64(minY+1)+spacingY32+spacingY16)),
 				"<>", lib.SelectedStyle)
 		case 1:
@@ -414,7 +414,7 @@ func drawConfig() {
 			}
 		case 2:
 			lib.Screen.PutStrStyled(
-				x-len(volumeSprite)/2+1+int(math.Round(obj.Config.Volume.Effects.Value/0.25)),
+				x-len(volumeSprite)/2+int(math.Round(obj.Config.Volume.Effects.Value/0.15)),
 				int(math.Round(float64(minY+1)+spacingY32+spacingY16*5)),
 				"<>", lib.SelectedStyle)
 		case 3:

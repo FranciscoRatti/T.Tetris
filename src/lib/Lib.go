@@ -1,12 +1,15 @@
 package lib
 
 import (
+	"strings"
+
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
 )
 
 var RESOURCES_PATH string
 var CONFIG_PATH string
+var VAR_PATH string
 
 var Screen tcell.Screen
 var DefaultStyle = tcell.StyleDefault.Background(color.Reset).Foreground(color.NewRGBColor(0, 255, 0))
@@ -81,9 +84,12 @@ func DrawWithFrame(x, y int, text []string, style tcell.Style) {
 	DrawString(x+1, y+1, text, style)
 }
 
-func AppendCero(text string, length int) string {
+func AppendBlank(text string, length int) string {
+	if text == "0" {
+		return strings.Repeat(" ", length)
+	}
 	for len(text) < length {
-		text = "0" + text
+		text = " " + text
 	}
 	return text
 }

@@ -40,6 +40,16 @@ func main() {
 				}
 
 				lib.CONFIG_PATH = os.Args[i]
+			case "--var":
+				if lib.VAR_PATH != "" {
+					log.Fatal("Error: Parámetro --var duplicado")
+				}
+				i++
+				if length < i {
+					log.Fatal("Error: No se especifico un path luego de --var")
+				}
+
+				lib.VAR_PATH = os.Args[i]
 			}
 		}
 	}
@@ -60,10 +70,17 @@ func main() {
 		}
 	}
 
-	// Config
-	obj.ReadConfig()
+	if lib.VAR_PATH == "" {
+		if runtime.GOOS == "linux" {
+			lib.VAR_PATH = "/var/lib/ttetris/"
+		} else if runtime.GOOS == "windows" {
+			lib.VAR_PATH = os.Getenv("ProgramFiles") + "\\TTetris\\var\\"
+		}
+	}
 
-	// Audio
+	// Init
+	obj.ReadConfig()
+	obj.ReadScoreboard()
 	obj.InitSpeakers()
 
 	// Inicializar pantalla
@@ -95,5 +112,7 @@ func main() {
 	scenes.OpenMenu()
 
 	// Final
+	obj.WriteConfig()
+	obj.WriteScoreboard()
 	speaker.Close()
 }

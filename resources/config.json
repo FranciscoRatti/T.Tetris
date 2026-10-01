@@ -16,11 +16,11 @@
 	},
 	"volume": {
 		"music": {
-			"value": 2.25,
+			"value": 1,
 			"mute": false
 		},
 		"effects": {
-			"value": 3.25,
+			"value": 1,
 			"mute": false
 		}
 	}
