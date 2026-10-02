@@ -126,7 +126,7 @@ func StartNewGame() {
 							obj.ResumeAudio.Play()
 
 							isPause = false
-							obj.Timer.Resume()
+							obj.Timer.Start()
 						case 1:
 							obj.EnterAudio.Play()
 
@@ -141,7 +141,7 @@ func StartNewGame() {
 						obj.ResumeAudio.Play()
 
 						isPause = false
-						obj.Timer.Resume()
+						obj.Timer.Start()
 					}
 				} else { // Normal
 					if obj.KeyRight.Equals(k, s) { // Derecha
@@ -198,7 +198,7 @@ func StartNewGame() {
 
 						isPause = true
 						selectedButton = 0
-						obj.Timer.Stop()
+						obj.Timer.StopAndWait()
 					}
 				}
 
@@ -213,7 +213,7 @@ func StartNewGame() {
 		drawGame()
 	}
 
-	obj.Timer.Stop()
+	obj.Timer.StopAndWait()
 	isFireworkShowing = false
 	obj.GameAudio.Stop()
 }
@@ -484,6 +484,7 @@ func initializeGame() {
 	// Timer
 	obj.Timer.Initialize(800, func() {
 		if !currentPiece.MoveDown(stationaryPieces) {
+			obj.FloorAudio.Play()
 			onChangePiece()
 		}
 		drawGame()
@@ -583,9 +584,7 @@ func checkLines() {
 	if continuosLines != 0 {
 
 		// Puntos
-		if isLevelUp {
-			obj.LevelUpAudio.Play()
-		} else if continuosLines == 4 {
+		if continuosLines == 4 {
 			obj.Line4Audio.Play()
 		} else {
 			obj.LineAudio.Play()
@@ -610,8 +609,10 @@ func checkLines() {
 		boolean := true
 		now := time.Now()
 		for range 6 {
-			for time.Since(now) <= 100*time.Millisecond {
-				time.Sleep(10 * time.Millisecond)
+			for {
+				if time.Since(now) > 100*time.Millisecond {
+					break
+				}
 			}
 			now = time.Now()
 
@@ -626,7 +627,7 @@ func checkLines() {
 		}
 
 		isAnimationRunning = false
-		obj.Timer.Resume()
+		obj.Timer.Start()
 
 		// Borra linea
 		for firstLine >= 0 {
@@ -653,6 +654,9 @@ func checkLines() {
 			}
 		}
 
+		if isLevelUp {
+			obj.LevelUpAudio.Play()
+		}
 		score += scoreUp
 	}
 }
@@ -660,7 +664,7 @@ func checkLines() {
 func checkGameOver() {
 	if stationaryPieces[0] != "                    " {
 		isGameOver = true
-		obj.Timer.Stop()
+		obj.Timer.StopAndWait()
 		obj.GameAudio.Stop()
 		channel := obj.GameOverAudio.PlayAndWait()
 
