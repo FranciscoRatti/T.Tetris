@@ -10,27 +10,28 @@ if %errorlevel% neq 0 (
     exit /b
 )
 
-:: RECURSOS
+:: DIRS
+set "INSTALL_DIR=%ProgramFiles%\TTetris"
+if not exist "%INSTALL_DIR%" mkdir "%INSTALL_DIR%"
 set "DATA_DIR=%INSTALL_DIR%\data"
 if not exist "%DATA_DIR%" mkdir "%DATA_DIR%"
+if not exist "%DATA_DIR%\audio" mkdir "%DATA_DIR%\audio"
+set "CONFIG_DIR=%AppData%\TTetris"
+if not exist "%CONFIG_DIR%" mkdir "%CONFIG_DIR%"
 
+
+:: RECURSOS
 copy /Y "%SRC%\resources\icon.ico" "%DATA_DIR%\"
 xcopy /Y /E /I "%SRC%\resources\audio\" "%DATA_DIR%\audio\"
 
 :: CONFIG
-set "CONFIG_DIR=%AppData%\TTetris"
-if not exist "%CONFIG_DIR%" mkdir "%CONFIG_DIR%"
-
 copy /Y "%SRC%\resources\config.json" "%CONFIG_DIR%\config.json"
 
 :: VARIABLE
 if not exist "%CONFIG_DIR%\scoreboard.obj" copy /Y "%SRC%\resources\scoreboard.obj" %CONFIG_DIR%\"
 
 :: BINARIO
-set "INSTALL_DIR=%ProgramFiles%\TTetris"
-if not exist "%INSTALL_DIR%" mkdir "%INSTALL_DIR%"
-
-copy /Y "%SRC%\bin\tetris.exe" "%INSTALL_DIR%\tetris.exe"
+copy /Y "%SRC%\bin\windows.exe" "%INSTALL_DIR%\tetris.exe"
 copy /Y "%SRC%\shell\uninstall.cmd" "%INSTALL_DIR%\uninstall.cmd"
 
 

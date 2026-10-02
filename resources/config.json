@@ -17,7 +17,7 @@
 	"volume": {
 		"music": {
 			"value": 0.7,
-			"mute": true
+			"mute": false
 		},
 		"effects": {
 			"value": 0.85,
