@@ -15,23 +15,24 @@ import (
 )
 
 var (
-	isRunning         bool
-	isHold            bool
-	isGameOver        bool
-	isPause           bool
-	isFireworkShowing bool
+	isRunning          bool
+	isHold             bool
+	isGameOver         bool
+	isPause            bool
+	isFireworkShowing  bool
+	isAnimationRunning bool
 
 	currentPiece *obj.Piece
 	nextPieces   [3]*obj.Piece
 	holdPiece    *obj.Piece
 
-	score int64
-	lines uint64
-	level uint8
+	score          int64
+	lines          uint64
+	level          uint8
+	continuosLines int
 
 	newEntryIndex byte
 	newEntryName  string
-	newEntryStyle = &lib.DefaultStyle
 )
 
 func StartNewGame() {
@@ -45,163 +46,165 @@ func StartNewGame() {
 
 		switch event := event.(type) {
 		case *tcell.EventKey:
-			k := event.Key()
-			s := event.Str()
+			if !isAnimationRunning {
+				k := event.Key()
+				s := event.Str()
 
-			if isGameOver {
-				if newEntryIndex != 0 { // Sí hay nueva entry
-					if k == tcell.KeyEsc {
-						newEntryIndex = 0
-					} else if k == tcell.KeyEnter {
-						if len(newEntryName) == 3 {
-							obj.Scoreboard.AddEntry(newEntryName, score, newEntryIndex)
+				if isGameOver {
+					if newEntryIndex != 0 { // Sí hay nueva entry
+						if k == tcell.KeyEsc {
 							newEntryIndex = 0
-						}
-					} else {
-						if len(newEntryName) < 3 {
-							upper := strings.ToUpper(s)
-							switch upper {
-							case "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P",
-								"A", "S", "D", "F", "G", "H", "J", "K", "L",
-								"Z", "X", "C", "V", "B", "N", "M":
-								newEntryName += upper
+						} else if k == tcell.KeyEnter {
+							if len(newEntryName) == 3 {
+								obj.Scoreboard.AddEntry(newEntryName, score, newEntryIndex)
+								newEntryIndex = 0
+							}
+						} else {
+							if len(newEntryName) < 3 {
+								upper := strings.ToUpper(s)
+								switch upper {
+								case "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P",
+									"A", "S", "D", "F", "G", "H", "J", "K", "L",
+									"Z", "X", "C", "V", "B", "N", "M":
+									newEntryName += upper
+								}
+							}
+							if k == tcell.KeyBackspace && len(newEntryName) > 0 {
+								newEntryName = newEntryName[:len(newEntryName)-1]
 							}
 						}
-						if k == tcell.KeyBackspace && len(newEntryName) > 0 {
-							newEntryName = newEntryName[:len(newEntryName)-1]
+					} else { // Sí perdió
+						switch k {
+						case tcell.KeyDown:
+							obj.KeyAudio.Play()
+
+							if selectedButton == 1 {
+								selectedButton = 0
+							} else {
+								selectedButton = 1
+							}
+						case tcell.KeyUp:
+							obj.KeyAudio.Play()
+
+							if selectedButton == 0 {
+								selectedButton = 1
+							} else {
+								selectedButton = 0
+							}
+						case tcell.KeyEnter:
+							obj.EnterAudio.Play()
+
+							switch selectedButton {
+							case 0:
+								initializeGame()
+								obj.Timer.Start()
+							case 1:
+								isRunning = false
+							}
 						}
 					}
-				} else { // Sí perdió
-					switch k {
-					case tcell.KeyDown:
+				} else if isPause { // Sí se pausa
+					if k == tcell.KeyDown {
 						obj.KeyAudio.Play()
 
-						if selectedButton == 1 {
+						if selectedButton == 2 {
 							selectedButton = 0
 						} else {
-							selectedButton = 1
+							selectedButton++
 						}
-					case tcell.KeyUp:
+					} else if k == tcell.KeyUp {
 						obj.KeyAudio.Play()
 
 						if selectedButton == 0 {
-							selectedButton = 1
+							selectedButton = 2
 						} else {
-							selectedButton = 0
+							selectedButton--
 						}
-					case tcell.KeyEnter:
-						obj.EnterAudio.Play()
-
+					} else if k == tcell.KeyEnter {
 						switch selectedButton {
 						case 0:
+							obj.ResumeAudio.Play()
+
+							isPause = false
+							obj.Timer.Resume()
+						case 1:
+							obj.EnterAudio.Play()
+
 							initializeGame()
 							obj.Timer.Start()
-						case 1:
+						case 2:
+							obj.EnterAudio.Play()
+
 							isRunning = false
 						}
-					}
-				}
-			} else if isPause { // Sí se pausa
-				if k == tcell.KeyDown {
-					obj.KeyAudio.Play()
-
-					if selectedButton == 2 {
-						selectedButton = 0
-					} else {
-						selectedButton++
-					}
-				} else if k == tcell.KeyUp {
-					obj.KeyAudio.Play()
-
-					if selectedButton == 0 {
-						selectedButton = 2
-					} else {
-						selectedButton--
-					}
-				} else if k == tcell.KeyEnter {
-					switch selectedButton {
-					case 0:
+					} else if obj.KeyPause.Equals(k, s) {
 						obj.ResumeAudio.Play()
 
 						isPause = false
 						obj.Timer.Resume()
-					case 1:
-						obj.EnterAudio.Play()
-
-						initializeGame()
-						obj.Timer.Start()
-					case 2:
-						obj.EnterAudio.Play()
-
-						isRunning = false
 					}
-				} else if obj.KeyPause.Equals(k, s) {
-					obj.ResumeAudio.Play()
-
-					isPause = false
-					obj.Timer.Resume()
-				}
-			} else { // Normal
-				if obj.KeyRight.Equals(k, s) { // Derecha
-					obj.MoveAudio.Play()
-					currentPiece.MoveRight(stationaryPieces)
-				} else if obj.KeyDown.Equals(k, s) { // Abajo
-					obj.MoveAudio.Play()
-					obj.Timer.UpdateLastExec()
-					if !currentPiece.MoveDown(stationaryPieces) {
-						onChangePiece()
-						break
-					} else {
-						score++
-					}
-				} else if obj.KeyLeft.Equals(k, s) { // Izquierda
-					obj.MoveAudio.Play()
-					currentPiece.MoveLeft(stationaryPieces)
-				} else if obj.KeyRotate.Equals(k, s) { // Rotar
-					obj.RotateAudio.Play()
-					currentPiece.RotateRight(stationaryPieces)
-				} else if obj.KeyHold.Equals(k, s) { // Holdear
-					if obj.Config.Game.Hold && !isHold {
-						obj.KeyAudio.Play()
-
-						isHold = true
-
-						if holdPiece == nil {
-							holdPiece = currentPiece
-							currentPiece = nextPieces[0]
-							currentPiece.SetPos(8, 0)
-							currentPiece.SetRotation(0)
-							nextPieces[0] = nextPieces[1]
-							nextPieces[1] = nextPieces[2]
-							nextPieces[2] = obj.NewPiece(nextPieces)
+				} else { // Normal
+					if obj.KeyRight.Equals(k, s) { // Derecha
+						obj.MoveAudio.Play()
+						currentPiece.MoveRight(stationaryPieces)
+					} else if obj.KeyDown.Equals(k, s) { // Abajo
+						obj.MoveAudio.Play()
+						obj.Timer.UpdateLastExec()
+						if !currentPiece.MoveDown(stationaryPieces) {
+							onChangePiece()
+							break
 						} else {
-							lastPiece := currentPiece
-							currentPiece = holdPiece
-							currentPiece.SetPos(8, 0)
-							currentPiece.SetRotation(0)
-							holdPiece = lastPiece
+							score++
 						}
+					} else if obj.KeyLeft.Equals(k, s) { // Izquierda
+						obj.MoveAudio.Play()
+						currentPiece.MoveLeft(stationaryPieces)
+					} else if obj.KeyRotate.Equals(k, s) { // Rotar
+						obj.RotateAudio.Play()
+						currentPiece.RotateRight(stationaryPieces)
+					} else if obj.KeyHold.Equals(k, s) { // Holdear
+						if obj.Config.Game.Hold && !isHold {
+							obj.KeyAudio.Play()
+
+							isHold = true
+
+							if holdPiece == nil {
+								holdPiece = currentPiece
+								currentPiece = nextPieces[0]
+								currentPiece.SetPos(8, 0)
+								currentPiece.SetRotation(0)
+								nextPieces[0] = nextPieces[1]
+								nextPieces[1] = nextPieces[2]
+								nextPieces[2] = obj.NewPiece(nextPieces)
+							} else {
+								lastPiece := currentPiece
+								currentPiece = holdPiece
+								currentPiece.SetPos(8, 0)
+								currentPiece.SetRotation(0)
+								holdPiece = lastPiece
+							}
+						}
+					} else if obj.KeyFloor.Equals(k, s) { // Piso
+						obj.FloorAudio.Play()
+
+						obj.Timer.UpdateLastExec()
+						currentY := currentPiece.GetY()
+						currentPiece.MoveFloor(stationaryPieces)
+						score += int64(currentPiece.GetY() - currentY)
+
+						onChangePiece()
+					} else if obj.KeyPause.Equals(k, s) { // Pausa
+						obj.PauseAudio.Play()
+
+						isPause = true
+						selectedButton = 0
+						obj.Timer.Stop()
 					}
-				} else if obj.KeyFloor.Equals(k, s) { // Piso
-					obj.FloorAudio.Play()
-
-					obj.Timer.UpdateLastExec()
-					currentY := currentPiece.GetY()
-					currentPiece.MoveFloor(stationaryPieces)
-					score += int64(currentPiece.GetY() - currentY)
-
-					onChangePiece()
-				} else if obj.KeyPause.Equals(k, s) { // Pausa
-					obj.PauseAudio.Play()
-
-					isPause = true
-					selectedButton = 0
-					obj.Timer.Stop()
 				}
-			}
 
-			if obj.KeyMute.Equals(k, s) {
-				obj.ChangeMuteAll()
+				if obj.KeyMute.Equals(k, s) {
+					obj.ChangeMuteAll()
+				}
 			}
 		case *tcell.EventResize:
 			lib.Width, lib.Height = lib.Screen.Size()
@@ -263,8 +266,8 @@ func drawGame() {
 	if newEntryIndex != 0 { // Si hay nueva entrada
 		lib.Screen.PutStrStyled(lib.Width/2+18, lib.Height/2+3, "NEW__ENTRY", lib.DefaultStyle)
 		lib.Screen.PutStrStyled(lib.Width/2+14, lib.Height/2+3+int(newEntryIndex), ">", lib.DefaultStyle)
-		lib.Screen.PutStrStyled(lib.Width/2+19, lib.Height/2+3+int(newEntryIndex), "___", *newEntryStyle)
-		lib.Screen.PutStrStyled(lib.Width/2+19, lib.Height/2+3+int(newEntryIndex), newEntryName, *newEntryStyle)
+		lib.Screen.PutStrStyled(lib.Width/2+19, lib.Height/2+3+int(newEntryIndex), "___", *lib.FlickerStyle)
+		lib.Screen.PutStrStyled(lib.Width/2+19, lib.Height/2+3+int(newEntryIndex), newEntryName, *lib.FlickerStyle)
 		lib.Screen.PutStrStyled(lib.Width/2+25, lib.Height/2+3+int(newEntryIndex), lib.FormatNumber(score), lib.DefaultStyle)
 		lib.Screen.PutStrStyled(lib.Width/2+15, lib.Height/2+10, "(esc for cancel)", lib.DefaultStyle)
 
@@ -289,10 +292,12 @@ func drawGame() {
 	// Marco
 	lib.DrawString(lib.Width/2-12, lib.Height/2-11, frame, lib.DefaultStyle)
 	if !isPause {
-		lib.DrawChars(lib.Width/2-10, lib.Height/2-11, stationaryPieces, stationaryColors)
+		lib.DrawStationaryPieces(stationaryPieces, stationaryColors, continuosLines)
 
 		// Pieza
-		currentPiece.Draw(stationaryPieces)
+		if !isAnimationRunning {
+			currentPiece.Draw(stationaryPieces)
+		}
 
 		// Siguientes
 		lib.DrawString(lib.Width/2+14, lib.Height/2-11, []string{"NEXT"}, lib.DefaultStyle)
@@ -437,6 +442,7 @@ func initializeGame() {
 	isGameOver = false
 	isHold = false
 	isPause = false
+	isAnimationRunning = false
 
 	// Piezas
 	currentPiece = &obj.Pieces[rand.Intn(7)]
@@ -450,6 +456,7 @@ func initializeGame() {
 	score = 0
 	lines = 0
 	level = 1
+	continuosLines = 0
 
 	// Entries
 	newEntryIndex = 0
@@ -528,8 +535,10 @@ func putStationaryPieces(piece obj.Piece) {
 }
 
 func checkLines() {
-	var continuosLines int
+	continuosLines = 0
 	isLevelUp := false
+
+	firstLine := -1
 
 	for r := 19; r >= 0; r-- {
 		cells := 0
@@ -558,24 +567,22 @@ func checkLines() {
 				}
 			}
 
-			for r2 := r; r2 >= 0; r2-- {
-				if r2 == 0 {
-					stationaryPieces[r2] = "                    "
-					for c2 := range 20 {
-						stationaryColors[r2][c2] = lib.DefaultStyle
-					}
-				} else {
-					stationaryPieces[r2] = stationaryPieces[r2-1]
-					stationaryColors[r2] = slices.Clone(stationaryColors[r2-1])
-				}
+			stationaryPieces[r] = "      < LINE >      "
+			for c2 := range 20 {
+				stationaryColors[r][c2] = lib.DefaultStyle
+			}
+
+			if firstLine == -1 {
+				firstLine = r
 			}
 
 			r++
 		}
 	}
 
-	// Puntos
 	if continuosLines != 0 {
+
+		// Puntos
 		if isLevelUp {
 			obj.LevelUpAudio.Play()
 		} else if continuosLines == 4 {
@@ -584,16 +591,69 @@ func checkLines() {
 			obj.LineAudio.Play()
 		}
 
+		var scoreUp int64
 		switch continuosLines {
 		case 1:
-			score += int64(40 * level)
+			scoreUp = int64(40 * level)
 		case 2:
-			score += int64(100 * level)
+			scoreUp = int64(100 * level)
 		case 3:
-			score += int64(300 * int(level))
+			scoreUp = int64(300 * int(level))
 		case 4:
-			score += int64(1200 * int(level))
+			scoreUp = int64(1200 * int(level))
 		}
+
+		// Animacion
+		obj.Timer.Stop()
+		isAnimationRunning = true
+
+		boolean := true
+		now := time.Now()
+		for range 6 {
+			for time.Since(now) <= 100*time.Millisecond {
+				time.Sleep(10 * time.Millisecond)
+			}
+			now = time.Now()
+
+			if boolean {
+				lib.FlickerStyle = &lib.SelectedStyle
+			} else {
+				lib.FlickerStyle = &lib.DefaultStyle
+			}
+			boolean = !boolean
+
+			drawGame()
+		}
+
+		isAnimationRunning = false
+		obj.Timer.Resume()
+
+		// Borra linea
+		for firstLine >= 0 {
+			if firstLine == 0 {
+				stationaryPieces[firstLine] = "                    "
+				for c2 := range 20 {
+					stationaryColors[firstLine][c2] = lib.DefaultStyle
+				}
+				break
+			} else if stationaryPieces[firstLine] == "                    " {
+				break
+			} else {
+				if stationaryPieces[firstLine] == "      < LINE >      " {
+					for i := firstLine; i >= 0; i-- {
+						if stationaryPieces[i] == "                    " {
+							break
+						}
+						stationaryPieces[i] = stationaryPieces[i-1]
+						stationaryColors[i] = slices.Clone(stationaryColors[i-1])
+					}
+				} else {
+					firstLine--
+				}
+			}
+		}
+
+		score += scoreUp
 	}
 }
 
@@ -627,9 +687,9 @@ func checkGameOver() {
 
 						boolean = !boolean
 						if boolean {
-							newEntryStyle = &lib.DefaultStyle
+							lib.FlickerStyle = &lib.DefaultStyle
 						} else {
-							newEntryStyle = &lib.SelectedStyle
+							lib.FlickerStyle = &lib.SelectedStyle
 						}
 
 						drawGame()

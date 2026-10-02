@@ -182,6 +182,7 @@ func OpenConfig() {
 				case tcell.KeyEscape: // Salir
 					isConfigBackgroundRunning = false
 					obj.EnterAudio.Play()
+					return
 				case tcell.KeyTab: // Cambiar de panel
 					obj.KeyAudio.Play()
 					if selectedPane < 3 {
@@ -202,10 +203,6 @@ func OpenConfig() {
 					case "3":
 						obj.KeyAudio.Play()
 						selectedPane = 3
-					case "q": // Salir
-						isConfigBackgroundRunning = false
-						obj.EnterAudio.Play()
-						return
 					}
 
 					if obj.KeyMute.Equals(k, event.Str()) { // Mute
