@@ -17,7 +17,7 @@ Está limitado a caracteres ASCII para soportar fuentes antiguas, los cambios de
 sistema de puntuacion es igual al original: <br>
 
 | Lineas |  Puntuacion  |
-|:------:|:------------:|
+| :----: | :----------: |
 |   1    |  40 x Nivel  |
 |   2    | 100 x Nivel  |
 |   3    | 300 x Nivel  |
@@ -29,9 +29,9 @@ Tambien tiene una tabla de puntuaciones local.
 
 Como minimo se recomienda una pantalla de **60x22**, pero lo ideal es **90x30** o mas.
 
-En cuanto a las fuentes, si quieres algo muy retro te recomiendo una fuentes de tipo **VGA** como
-las **IBM BIOS**, estas fuentes las puedes encontrar en [Oldschool PC Fonts](https://int10h.org/oldschool-pc-fonts/). Si queres algo
-mas moderno puedes usar una **NERD FONT** pixelada, como la **GohuFont 14 Nerd Font Mono** que es la
+En cuanto a las fuentes, si queres algo muy retro te recomiendo una fuentes de tipo **VGA** como
+las **IBM BIOS**, estas fuentes las podes encontrar en [Oldschool PC Fonts](https://int10h.org/oldschool-pc-fonts/). Si queres algo
+mas moderno podes usar una **NERD FONT** pixelada, como la **GohuFont 14 Nerd Font Mono** que es la
 que se usa en la previsualizacion, estas las encontrar en [Nerd Fonts](https://www.nerdfonts.com/font-downloads)
 
 Para la terminal se puede usar cualquiera pero se recomiendan terminales con soporte a 256 colores,
@@ -154,8 +154,8 @@ go build src/Main.go
 Antes de ejecutar el binario hay tres cosas que debes de tener en cuenta:
 
 - Donde irán los **archivos estáticos**, estos son los audios y el icono, (png o ico). Los audios
-tienen que ir dentro de un subdirectorio llamado **audio**
-- Donde irá el archivo de **configuración**. 
+  tienen que ir dentro de un subdirectorio llamado **audio**
+- Donde irá el archivo de **configuración**.
 - Donde irá el archivo que guarda el scoreboard llamado **scoreboard.obj**.
 
 Luego de tener esto claro, es necesario especificar estos tres paths incluyendo los siguientes
