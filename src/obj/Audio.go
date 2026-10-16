@@ -59,7 +59,6 @@ func InitSpeakers() {
 	speaker.Play(MenuAudio.Volume)
 }
 
-
 // Audio ---------------------------------------------------------------------------------------------------------------
 
 type audio struct {
@@ -244,11 +243,11 @@ func ChangeMusicVolumeWithoutChange(value float64) {
 }
 
 func calculateCorrectValue(value *float64) float64 {
-	if *value < 0.15 {
-		*value = 0.15
+	if *value < 0.05 {
+		*value = 0.05
 		return -1
-	} else if *value > 3.75 {
-		*value = 3.75
+	} else if *value > 2.5 {
+		*value = 2.5
 		return -1
 	}
 

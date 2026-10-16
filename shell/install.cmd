@@ -28,7 +28,7 @@ xcopy /Y /E /I "%SRC%\resources\audio\" "%DATA_DIR%\audio\"
 copy /Y "%SRC%\resources\config.json" "%CONFIG_DIR%\config.json"
 
 :: VARIABLE
-if not exist "%CONFIG_DIR%\scoreboard.obj" copy /Y "%SRC%\resources\scoreboard.obj" %CONFIG_DIR%\"
+if not exist "%CONFIG_DIR%\scoreboard.obj" copy /Y "%SRC%\resources\scoreboard.obj" "%CONFIG_DIR%\scoreboard.obj"
 
 :: BINARIO
 copy /Y "%SRC%\bin\windows.exe" "%INSTALL_DIR%\tetris.exe"

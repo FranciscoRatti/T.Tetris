@@ -132,9 +132,9 @@ func OpenConfig() {
 						obj.KeyAudio.Play()
 						switch selectedButtonVolumen {
 						case 0:
-							obj.ChangeMusicVolume(0.15)
+							obj.ChangeMusicVolume(0.1)
 						case 2:
-							obj.ChangeEffectsVolume(0.15)
+							obj.ChangeEffectsVolume(0.1)
 						}
 					}
 				case tcell.KeyLeft: // Izquierda
@@ -142,9 +142,9 @@ func OpenConfig() {
 						obj.KeyAudio.Play()
 						switch selectedButtonVolumen {
 						case 0:
-							obj.ChangeMusicVolume(-0.15)
+							obj.ChangeMusicVolume(-0.1)
 						case 2:
-							obj.ChangeEffectsVolume(-0.15)
+							obj.ChangeEffectsVolume(-0.1)
 						}
 					}
 				case tcell.KeyEnter: // Enter
@@ -286,7 +286,7 @@ func drawConfig() {
 		i++
 	}
 	lib.Screen.PutStrStyled(
-		x-len(volumeSprite)/2+int(math.Round(obj.Config.Volume.Music.Value/0.15)),
+		x-len(volumeSprite)/2+int(math.Round(obj.Config.Volume.Music.Value/0.1-0.05)),
 		int(math.Round(float64(minY+1)+spacingY32+spacingY16)),
 		"<>", lib.DefaultStyle)
 	if obj.Config.Volume.Music.Mute {
@@ -296,7 +296,7 @@ func drawConfig() {
 			"x", lib.DefaultStyle)
 	}
 	lib.Screen.PutStrStyled(
-		x-len(volumeSprite)/2+int(math.Round(obj.Config.Volume.Effects.Value/0.15)),
+		x-len(volumeSprite)/2+int(math.Round(obj.Config.Volume.Effects.Value/0.1-0.05)),
 		int(math.Round(float64(minY+1)+spacingY32+spacingY16*5)),
 		"<>", lib.DefaultStyle)
 	if obj.Config.Volume.Effects.Mute {
@@ -400,7 +400,7 @@ func drawConfig() {
 		switch selectedButtonVolumen {
 		case 0: // Volumen de musica
 			lib.Screen.PutStrStyled(
-				x-len(volumeSprite)/2+int(math.Round(obj.Config.Volume.Music.Value/0.15)),
+				x-len(volumeSprite)/2+int(math.Round(obj.Config.Volume.Music.Value/0.1-0.05)),
 				int(math.Round(float64(minY+1)+spacingY32+spacingY16)),
 				"<>", lib.SelectedStyle)
 		case 1: // Mute de musica
@@ -416,7 +416,7 @@ func drawConfig() {
 			}
 		case 2: // Volumen de efectos
 			lib.Screen.PutStrStyled(
-				x-len(volumeSprite)/2+int(math.Round(obj.Config.Volume.Effects.Value/0.15)),
+				x-len(volumeSprite)/2+int(math.Round(obj.Config.Volume.Effects.Value/0.1-0.05)),
 				int(math.Round(float64(minY+1)+spacingY32+spacingY16*5)),
 				"<>", lib.SelectedStyle)
 		case 3: // Mute de efectos
